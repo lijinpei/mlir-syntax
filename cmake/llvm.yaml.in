@@ -1,0 +1,8 @@
+output: {CAPI_EXPORTER_OUTPUT_DIR}
+languages:
+  rust:
+    include_path:
+      - "@SRC_DIR@"
+    link_lib: "@LINK_LIB@"
+  chez-scheme:
+    - 2

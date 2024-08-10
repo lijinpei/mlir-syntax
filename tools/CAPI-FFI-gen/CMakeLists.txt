@@ -1,0 +1,11 @@
+find_package(YamlCpp MODULE REQUIRED)
+find_package(fmt MODULE REQUIRED)
+
+set (_sources capi_ffi_generator.cpp rust_ffi_exporter.cpp chez_scheme_ffi_exporter.cpp)
+add_llvm_library(capi_ffi_generator MODULE ${_sources} PLUGIN_TOOL clang)
+target_include_directories(capi_ffi_generator PRIVATE ${CLANG_INCLUDE_DIRS})
+target_link_libraries(capi_ffi_generator PRIVATE yaml-cpp::yaml-cpp fmt::fmt)
+target_compile_options(capi_ffi_generator PRIVATE -fexceptions)
+foreach(inc_dir ${LLVM_INCLUDE_DIRS})
+  target_include_directories(capi_ffi_generator PRIVATE "${inc_dir}")
+endforeach()

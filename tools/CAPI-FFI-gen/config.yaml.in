@@ -1,0 +1,12 @@
+output: {CAPI_EXPORTER_OUTPUT_DIR}
+languages:
+  rust:
+    include_path:
+      - "@SRC_DIR@"
+    link_lib: "@LINK_LIB@"
+    extra_preamble:
+      AffineExpr.rs: |
+        #[allow(unused_imports)
+        use crate::AffineMap::*;
+  chez-scheme:
+    - 2

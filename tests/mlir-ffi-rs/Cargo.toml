@@ -1,0 +1,58 @@
+[package]
+name = "mlir-ffi-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mlir = { path = "../../build/ffi/mlir" }
+llvm = { path = "../../build/ffi/llvm" }
+libc = "0.2"
+libm = "0.2.11"
+
+[[bin]]
+name = "ir"
+path = "src/ir.rs"
+
+[[bin]]
+name = "pass"
+path = "src/pass.rs"
+
+[[bin]]
+name = "rewrite"
+path = "src/rewrite.rs"
+
+[[bin]]
+name = "llvm"
+path = "src/llvm.rs"
+
+[[bin]]
+name = "pdl"
+path = "src/pdl.rs"
+
+[[bin]]
+name = "quant"
+path = "src/quant.rs"
+
+[[bin]]
+name = "execution_engine"
+path = "src/execution_engine.rs"
+
+[[bin]]
+name = "sparse_tensor"
+path = "src/sparse_tensor.rs"
+
+[[bin]]
+name = "transform"
+path = "src/transform.rs"
+
+[[bin]]
+name = "transform_interpreter"
+path = "src/transform_interpreter.rs"
+
+[[bin]]
+name = "translation"
+path = "src/translation.rs"
+
+[[bin]]
+name = "irdl"
+path = "src/irdl.rs"
