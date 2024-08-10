@@ -1,0 +1,1 @@
+find_package(MLIR REQUIRED CONFIG)

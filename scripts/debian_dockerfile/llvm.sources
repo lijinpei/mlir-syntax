@@ -1,0 +1,6 @@
+Types: deb
+# http://snapshot.debian.org/archive/debian/20240701T000000Z
+URIs: http://apt.llvm.org/unstable/
+Suites: llvm-toolchain
+Components: main
+Signed-By: /etc/apt/trusted.gpg.d/apt.llvm.org.asc
