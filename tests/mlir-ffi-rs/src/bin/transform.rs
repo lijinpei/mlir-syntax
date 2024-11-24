@@ -1,15 +1,16 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use mlir::Dialect_::Transform::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::Dialect_::Transform::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
 use mlir_ffi_rs::common::mlirTypeIsNull;
 
 // CHECK-LABEL: testAnyOpType
 fn testAnyOpType(ctx: MlirContext) {
     unsafe {
-        eprint!("testAnyOpType\n");
+        eprintln!("testAnyOpType");
 
         let parsedType = mlirTypeParseGet(
             ctx,
@@ -24,16 +25,16 @@ fn testAnyOpType(ctx: MlirContext) {
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(parsedType, constructedType));
+        eprintln!("equal: {}", mlirTypeEqual(parsedType, constructedType));
 
         // CHECK: parsedType isa AnyOpType: 1
-        eprint!(
-            "parsedType isa AnyOpType: {}\n",
+        eprintln!(
+            "parsedType isa AnyOpType: {}",
             mlirTypeIsATransformAnyOpType(parsedType)
         );
         // CHECK: parsedType isa OperationType: 0
-        eprint!(
-            "parsedType isa OperationType: {}\n",
+        eprintln!(
+            "parsedType isa OperationType: {}",
             mlirTypeIsATransformOperationType(parsedType)
         );
 
@@ -47,7 +48,7 @@ fn testAnyOpType(ctx: MlirContext) {
 // CHECK-LABEL: testOperationType
 fn testOperationType(ctx: MlirContext) {
     unsafe {
-        eprint!("testOperationType\n");
+        eprintln!("testOperationType");
 
         let parsedType = mlirTypeParseGet(
             ctx,
@@ -65,23 +66,23 @@ fn testOperationType(ctx: MlirContext) {
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(parsedType, constructedType));
+        eprintln!("equal: {}", mlirTypeEqual(parsedType, constructedType));
 
         // CHECK: parsedType isa AnyOpType: 0
-        eprint!(
-            "parsedType isa AnyOpType: {}\n",
+        eprintln!(
+            "parsedType isa AnyOpType: {}",
             mlirTypeIsATransformAnyOpType(parsedType)
         );
         // CHECK: parsedType isa OperationType: 1
-        eprint!(
-            "parsedType isa OperationType: {}\n",
+        eprintln!(
+            "parsedType isa OperationType: {}",
             mlirTypeIsATransformOperationType(parsedType)
         );
 
         // CHECK: operation name equal: 1
         let operationName = mlirTransformOperationTypeGetOperationName(constructedType);
-        eprint!(
-            "operation name equal: {}\n",
+        eprintln!(
+            "operation name equal: {}",
             mlirStringRefEqual(
                 operationName,
                 mlirStringRefCreateFromCString("foo.bar\0".as_ptr() as *const i8)

@@ -1,0 +1,45 @@
+parallel(
+    archlinux: {
+      node('build-machine') {
+      checkout scmGit(branches: [[name: '*/rust']], extensions: [cloneOption(depth: 1, noTags: true, reference: '', shallow: true), submodule(recursiveSubmodules: true, reference: '')], userRemoteConfigs: [[credentialsId: 'gituser', url: 'gituser@192.168.1.3:/home/gituser/repos/mlir-syntax.git']])
+      docker.image('192.168.1.3:5000/mlir-syntax-archlinux:latest').inside('--network host') {
+        stage('test-on-archlinux') {
+          sh("""#!/usr/bin/env bash
+            python3 ci/serveur.py \
+            --proxy http://127.0.0.1:7890 \
+            create_venv --path venv --force""")
+          sh("""#!/usr/bin/env bash
+            set -exo pipefail
+            source venv/bin/activate
+            python3 ci/serveur.py \
+            --proxy http://127.0.0.1:7890 \
+            build --clean
+            export HOME=\$(pwd)/home
+            python3 ci/serveur.py \
+            --proxy http://127.0.0.1:7890 \
+            test""")
+        }
+      }
+    }},
+    debian: {
+      node('build-machine') {
+      checkout scmGit(branches: [[name: '*/rust']], extensions: [cloneOption(depth: 1, noTags: true, reference: '', shallow: true), submodule(recursiveSubmodules: true, reference: '')], userRemoteConfigs: [[credentialsId: 'gituser', url: 'gituser@192.168.1.3:/home/gituser/repos/mlir-syntax.git']])
+      docker.image('192.168.1.3:5000/mlir-syntax-debian:latest').inside('--network host') {
+        stage('test-on-debian') {
+          sh("""#!/usr/bin/env bash
+            python3 ci/serveur.py \
+            --proxy http://127.0.0.1:7890 \
+            create_venv --path venv --force""")
+          sh("""#!/usr/bin/env bash
+            set -exo pipefail
+            source venv/bin/activate
+            python3 ci/serveur.py \
+            --proxy http://127.0.0.1:7890 \
+            build --clean
+            export HOME=\$(pwd)/home
+            python3 ci/serveur.py \
+            --proxy http://127.0.0.1:7890 \
+            test""")
+        }
+      }
+    }})

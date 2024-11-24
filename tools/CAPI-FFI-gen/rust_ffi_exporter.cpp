@@ -36,11 +36,30 @@ struct RustFFIExporter : FFIExporter {
       thisCrateInclPaths.push_back(pathStr);
     }
   }
+  std::string getUseForRust(StringRef incFileName) {
+    if (incFileName.ends_with(".rs")) {
+      incFileName = incFileName.drop_back(3);
+    }
+    std::string res;
+    while (true) {
+      auto pos = incFileName.find('/');
+      if (!res.empty()) {
+        res += "::";
+      }
+      res += incFileName.substr(0, pos);
+      if (pos == StringRef::npos) {
+        break;
+      }
+      incFileName = incFileName.substr(pos + 1);
+    }
+    return res;
+  }
   std::optional<std::string> getUseForIncl(StringRef incFileName) {
-    if (!incFileName.ends_with(".h")) {
+    if (incFileName.ends_with(".h")) {
+      incFileName = incFileName.drop_back(2);
+    } else {
       return std::nullopt;
     }
-    incFileName = incFileName.drop_back(2);
     for (const auto &path : thisCrateInclPaths) {
       if (!incFileName.starts_with(path)) {
         continue;
@@ -79,6 +98,7 @@ struct RustFFIExporter : FFIExporter {
   };
   YAML::Node config;
   std::unique_ptr<raw_fd_ostream> fout_;
+  std::string outputPath;
   raw_ostream &fout() {
     if (!hasError) {
       return *fout_;
@@ -114,6 +134,8 @@ struct RustFFIExporter : FFIExporter {
     fout() << "#![allow(non_upper_case_globals)]\n";
     indent();
     fout() << "#![allow(non_camel_case_types)]\n\n";
+    fout() << "use std::convert::{From, Into};\n";
+    fout() << "use std::marker::PhantomData;\n";
     auto extra_preamble = config["extra_preamble"];
     if (extra_preamble) {
       for (const auto &kv : extra_preamble) {
@@ -122,6 +144,16 @@ struct RustFFIExporter : FFIExporter {
         }
       }
     }
+    // StringRef modName;
+    // auto pathSepPos = outputPath.rfind('/');
+    // if (pathSepPos == StringRef::npos) {
+    //   modName = outputPath;
+    // } else {
+    //   modName = outputPath.substr(pathSepPos + 1);
+    // }
+    // modName.consume_back(".rs");
+    // this->modName = modName.str();
+    this->outputPath = outputPath.str();
   }
   Type *peelTypedef(const Type *ty) {
     while (true) {
@@ -181,7 +213,7 @@ struct RustFFIExporter : FFIExporter {
       auto *enumDecl = enumType->getDecl();
       auto name = enumDecl->getName();
       if (name.empty()) {
-        emitTypeReference(os, enumDecl->getIntegerType(), trc);
+        emitTypeReference(os, enumDecl->getIntegerType());
         return;
       }
       auto str = QualType(type, {}).getAsString();
@@ -193,7 +225,7 @@ struct RustFFIExporter : FFIExporter {
     if (auto *typedefType = dyn_cast<TypedefType>(type)) {
       auto *underlyigTy = peelTypedef(typedefType);
       if (isa<BuiltinType, EnumType>(underlyigTy)) {
-        emitTypeReference(os, underlyigTy, trc);
+        emitTypeReference(os, underlyigTy);
         return;
       }
       auto *typedefDecl = typedefType->getDecl();
@@ -207,11 +239,11 @@ struct RustFFIExporter : FFIExporter {
         if (!isFirst) {
           os << ", ";
         }
-        emitTypeReference(os, parTy, trc);
+        emitTypeReference(os, parTy);
         isFirst = false;
       }
       os << ") -> ";
-      emitTypeReference(os, funcTy->getReturnType(), trc);
+      emitTypeReference(os, funcTy->getReturnType());
       return;
     }
     if (auto *ptrTy = dyn_cast<PointerType>(type)) {
@@ -227,7 +259,7 @@ struct RustFFIExporter : FFIExporter {
     }
     if (auto arrayType = dyn_cast<ConstantArrayType>(type)) {
       os << '[';
-      emitTypeReference(os, arrayType->getElementType(), trc);
+      emitTypeReference(os, arrayType->getElementType());
       os << "; ";
       os << arrayType->getZExtSize();
       os << ']';
@@ -236,10 +268,55 @@ struct RustFFIExporter : FFIExporter {
     if (auto *builtinType = dyn_cast<BuiltinType>(type)) {
       if (type->isVoidType()) {
         if (trc == TRC_Pointee) {
-          os << "u8";
+          os << "std::ffi::c_void";
         } else {
           os << "()";
         }
+        return;
+      }
+      auto kind = builtinType->getKind();
+      if (kind == BuiltinType::Char_U || kind == BuiltinType::Char_S) {
+        os << "std::ffi::c_char";
+        return;
+      }
+      if (kind == BuiltinType::UChar) {
+        os << "std::ffi::c_uchar";
+        return;
+      }
+      if (kind == BuiltinType::SChar) {
+        os << "std::ffi::c_schar";
+        return;
+      }
+      if (kind == BuiltinType::Short) {
+        os << "std::ffi::c_short";
+        return;
+      }
+      if (kind == BuiltinType::UShort) {
+        os << "std::ffi::c_ushort";
+        return;
+      }
+      if (kind == BuiltinType::Int) {
+        os << "std::ffi::c_int";
+        return;
+      }
+      if (kind == BuiltinType::UInt) {
+        os << "std::ffi::c_uint";
+        return;
+      }
+      if (kind == BuiltinType::Long) {
+        os << "std::ffi::c_long";
+        return;
+      }
+      if (kind == BuiltinType::ULong) {
+        os << "std::ffi::c_ulong";
+        return;
+      }
+      if (kind == BuiltinType::LongLong) {
+        os << "std::ffi::c_longlong";
+        return;
+      }
+      if (kind == BuiltinType::ULongLong) {
+        os << "std::ffi::c_ulonglong";
         return;
       }
       if (type->isIntegralType(getASTContext())) {
@@ -343,7 +420,6 @@ struct RustFFIExporter : FFIExporter {
         if (name == "mod") {
           name = "r#mod";
         }
-        // FIXME: if name is self_
         if (name == "self") {
           name = "self_";
         }
@@ -357,6 +433,104 @@ struct RustFFIExporter : FFIExporter {
     emitTypeReference(fout(), funcDecl->getReturnType());
     fout() << ";\n";
   }
+  void exportGenericFunctionImpl_(FunctionDecl *funcDecl,
+                                  const std::string &usePath) {
+    auto retTy = funcDecl->getReturnType();
+    bool retVoid = retTy->isVoidType();
+    bool noParam = funcDecl->parameters().empty();
+    if (noParam && retVoid) {
+      return;
+    }
+    std::string retTyName;
+    if (!retVoid) {
+      llvm::raw_string_ostream retTypeOS(retTyName);
+      emitTypeReference(retTypeOS, retTy);
+      fout() << "impl<Tret_> FFIVal_<Tret_> where Tret_: From<" << retTyName
+             << "> {\n";
+    } else {
+      fout() << "impl FFIVoid_ {\n";
+    }
+    {
+      IncIndent incInd(*this);
+      std::string typeParamsStr, boundsStr, paramsStr, bodyStr;
+      indent();
+      fout() << "pub unsafe fn " << funcDecl->getName();
+      if (!noParam) {
+        llvm::raw_string_ostream typeParams(typeParamsStr);
+        llvm::raw_string_ostream bounds(boundsStr);
+        llvm::raw_string_ostream params(paramsStr);
+        llvm::raw_string_ostream body(bodyStr);
+        fout() << "<";
+        for (auto [idx, parDecl] : llvm::enumerate(funcDecl->parameters())) {
+
+          if (idx != 0) {
+            params << ", ";
+            body << ", ";
+            bounds << ", ";
+            typeParams << ", ";
+          }
+          std::string argName = parDecl->getName().str();
+          if (argName.empty()) {
+            argName = "arg" + std::to_string(idx);
+          }
+          argName += "_";
+          std::string genericName = "T" + std::to_string(idx) + "_";
+          std::string typeName;
+          llvm::raw_string_ostream typeOS(typeName);
+          emitTypeReference(typeOS, parDecl->getType());
+          typeParams << genericName;
+          bounds << " " << genericName << ": Into<" << typeName << ">";
+          params << argName << ": " << " " << genericName;
+          body << "Into::<" << typeName << ">::into(" << argName << ")";
+        }
+        fout() << typeParamsStr << ">";
+      }
+      fout() << "(" << paramsStr << ")";
+      if (!retVoid) {
+        fout() << "-> Tret_";
+      }
+      fout() << "\n";
+      if (!noParam) {
+        indent();
+        fout() << "where\n";
+        IncIndent incInd(*this);
+        indent();
+        fout() << boundsStr << "\n";
+      }
+      indent();
+      fout() << "{\n";
+      auto emitBody = [&]() {
+        indent();
+        fout() << "unsafe {\n";
+        {
+          IncIndent incInd(*this);
+          indent();
+          fout() << "crate::" << usePath << "::" << funcDecl->getName() << "("
+                 << bodyStr << ")\n";
+        }
+        indent();
+        fout() << "}\n";
+      };
+      {
+        IncIndent incInd(*this);
+        if (retVoid) {
+          emitBody();
+        } else {
+          indent();
+          fout() << "Into::<Tret_>::into(\n";
+          {
+            IncIndent incInd(*this);
+            emitBody();
+          }
+          indent();
+          fout() << ")\n";
+        }
+      }
+      indent();
+      fout() << "}\n";
+    }
+    fout() << "}\n\n";
+  }
   void finishTranslationUnit(ASTContext &Ctx) override {
     fout() << "\n#[link(name = \"" << config["link_lib"].as<std::string>()
            << "\")]\n";
@@ -366,8 +540,19 @@ struct RustFFIExporter : FFIExporter {
       for (auto *funcDecl : funcsToExport) {
         exportFunctionDecl_(funcDecl);
       }
+      fout() << "\n";
     }
-    fout() << "}\n";
+    fout() << "}\n\n";
+    indent();
+    fout() << "pub struct FFIVal_<Tret_> {e_: PhantomData<Tret_>,}\n";
+    indent();
+    fout() << "pub struct FFIVoid_;\n\n";
+    auto usePath = getUseForRust(outputPath);
+    // indent();
+    //  fout() << "use crate::" << usePath << "::*;\n";
+    for (auto *funcDecl : funcsToExport) {
+      exportGenericFunctionImpl_(funcDecl, usePath);
+    }
   }
   bool handleMainFileInclude(llvm::StringRef fileName) override {
     auto usePath = getUseForIncl(fileName);

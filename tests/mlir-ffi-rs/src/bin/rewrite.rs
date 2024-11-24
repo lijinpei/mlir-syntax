@@ -1,9 +1,10 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use mlir::BuiltinTypes::*;
-use mlir::Rewrite::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::BuiltinTypes::*;
+use mlir_capi::Rewrite::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
 fn createOperationWithName(ctx: MlirContext, name: *const i8) -> MlirOperation {
     unsafe {
@@ -19,7 +20,7 @@ fn createOperationWithName(ctx: MlirContext, name: *const i8) -> MlirOperation {
 fn testInsertionPoint(ctx: MlirContext) {
     unsafe {
         // CHECK-LABEL: @testInsertionPoint
-        eprint!("@testInsertionPoint\n");
+        eprintln!("@testInsertionPoint");
 
         let moduleString = "\"dialect.op1\"() : () -> ()\n\0".as_ptr() as *const i8;
         let module = mlirModuleCreateParse(ctx, mlirStringRefCreateFromCString(moduleString));
@@ -82,7 +83,7 @@ fn testInsertionPoint(ctx: MlirContext) {
 fn testCreateBlock(ctx: MlirContext) {
     unsafe {
         // CHECK-LABEL: @testCreateBlock
-        eprint!("@testCreateBlock\n");
+        eprintln!("@testCreateBlock");
 
         let moduleString =
             "\"dialect.op1\"() ({^bb0:}) : () -> ()\n\"dialect.op2\"() ({^bb0:}) : () -> ()\n\0"
@@ -146,7 +147,7 @@ fn testCreateBlock(ctx: MlirContext) {
 fn testInlineRegionBlock(ctx: MlirContext) {
     unsafe {
         // CHECK-LABEL: @testInlineRegionBlock
-        eprint!("@testInlineRegionBlock\n");
+        eprintln!("@testInlineRegionBlock");
 
         let moduleString = "\"dialect.op1\"() ({
   ^bb0(%arg0: index):
@@ -235,7 +236,7 @@ fn testInlineRegionBlock(ctx: MlirContext) {
 fn testReplaceOp(ctx: MlirContext) {
     unsafe {
         // CHECK-LABEL: @testReplaceOp
-        eprint!("@testReplaceOp\n");
+        eprintln!("@testReplaceOp");
 
         let moduleString = "%x, %y, %z = \"dialect.create_values\"() : () -> (index, index, index)
 %x_1, %y_1 = \"dialect.op1\"() : () -> (index, index)
@@ -284,7 +285,7 @@ fn testReplaceOp(ctx: MlirContext) {
 fn testErase(ctx: MlirContext) {
     unsafe {
         // CHECK-LABEL: @testErase
-        eprint!("@testErase\n");
+        eprintln!("@testErase");
 
         let moduleString = "\"dialect.op_to_erase\"() : () -> ()
 \"dialect.op2\"() ({
@@ -329,7 +330,7 @@ fn testErase(ctx: MlirContext) {
 fn testMove(ctx: MlirContext) {
     unsafe {
         // CHECK-LABEL: @testMove
-        eprint!("@testMove\n");
+        eprintln!("@testMove");
 
         let moduleString = "\"dialect.op1\"() : () -> ()
 \"dialect.op2\"() ({
@@ -383,7 +384,7 @@ fn testMove(ctx: MlirContext) {
 fn testOpModification(ctx: MlirContext) {
     unsafe {
         // CHECK-LABEL: @testOpModification
-        eprint!("@testOpModification\n");
+        eprintln!("@testOpModification");
 
         let moduleString = "%x, %y = \"dialect.op1\"() : () -> (index, index)
 \"dialect.op2\"(%x) : (index) -> ()\n\0"
@@ -420,7 +421,7 @@ fn testOpModification(ctx: MlirContext) {
 fn testReplaceUses(ctx: MlirContext) {
     unsafe {
         // CHECK-LABEL: @testReplaceUses
-        eprint!("@testReplaceUses\n");
+        eprintln!("@testReplaceUses");
 
         let moduleString =
       // Replace values with values

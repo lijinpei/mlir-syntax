@@ -1,0 +1,15 @@
+node('build-machine') {
+  docker.image('192.168.1.3:5000/mlir-syntax-debian:latest').inside {
+    stage('build-and-package-llvm') {
+    	git branch: 'rust', credentialsId: 'gituser', url: 'gituser@192.168.1.3:/home/gituser/repos/mlir-syntax.git'
+	    dir('workspace/llvm-project') {
+		    withEnv(['http_proxy=http://192.168.1.6:7890','http_proxy=http://192.168.1.6:7890']) {
+          git branch: 'main', url: 'gituser@192.168.1.3:/home/gituser/repos/llvm-project.git'
+        }
+      }
+    	sh("""#!/usr/bin/env bash
+        python3 ci/serveur.py package_llvm --llvm-dir workspace/llvm-project --build-dir workspace/build_llvm""")
+      archiveArtifacts artifacts: 'workspace/build_llvm/LLVM-*-Linux.tar.zst', fingerprint: true, onlyIfSuccessful: true
+    }
+  }
+}

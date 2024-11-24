@@ -1,0 +1,8 @@
+set(saved_module_path "${CMAKE_MODULE_PATH}")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+find_package(MLIR REQUIRED MODULE)
+find_library(mlir_so libMLIR.so NO_CACHE PATHS "${LLVM_LIBRARY_DIRS}")
+if(mlir_so)
+  message("${mlir_so}")
+endif()
+set(CMAKE_MODULE_PATH "${saved_module_path}")

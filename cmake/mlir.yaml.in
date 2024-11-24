@@ -8,6 +8,6 @@ languages:
       AffineExpr.rs: |
         use crate::AffineMap::*;
       Target_/LLVMIR.rs: |
-        use llvm::Types::*;
+        use llvm_capi::Types::*;
   chez-scheme:
     - 2

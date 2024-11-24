@@ -1,19 +1,15 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use mlir::ExecutionEngine::*;
-use mlir::Pass::*;
-use mlir::RegisterEverything::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::Conversion::*;
+use mlir_capi::ExecutionEngine::*;
+use mlir_capi::Pass::*;
+use mlir_capi::RegisterEverything::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
+use mlir_ffi_rs::c_str_ptr;
 use mlir_ffi_rs::common::{mlirExecutionEngineIsNull, mlirLogicalResultIsFailure};
-
-// FIXME:
-#[link(name = "MLIR-C")]
-extern "C" {
-    fn mlirCreateConversionConvertFuncToLLVMPass() -> MlirPass;
-    fn mlirCreateConversionArithToLLVMConversionPass() -> MlirPass;
-}
 
 fn registerAllUpstreamDialects(ctx: MlirContext) {
     unsafe {
@@ -29,13 +25,13 @@ fn lowerModuleToLLVM(ctx: MlirContext, module: MlirModule) {
         let pm = mlirPassManagerCreate(ctx);
         let opm = mlirPassManagerGetNestedUnder(
             pm,
-            mlirStringRefCreateFromCString("func.func\0".as_ptr() as *const i8),
+            mlirStringRefCreateFromCString(c_str_ptr!("func.func")),
         );
         mlirPassManagerAddOwnedPass(pm, mlirCreateConversionConvertFuncToLLVMPass());
         mlirOpPassManagerAddOwnedPass(opm, mlirCreateConversionArithToLLVMConversionPass());
         let status = mlirPassManagerRunOnOp(pm, mlirModuleGetOperation(module));
         if mlirLogicalResultIsFailure(status) {
-            eprint!("Unexpected failure running pass pipeline\n");
+            eprintln!("Unexpected failure running pass pipeline");
             std::process::exit(2);
         }
         mlirPassManagerDestroy(pm);
@@ -52,13 +48,14 @@ fn testSimpleExecution() {
             ctx,
             mlirStringRefCreateFromCString(
                 // clang-format off
-                "module {                                                                    
-  func.func @add(%arg0 : i32) -> i32 attributes { llvm.emit_c_interface } {     
-    %res = arith.addi %arg0, %arg0 : i32                                        
-    return %res : i32                                                           
-  }                                                                             
-}\0"
-                .as_ptr() as *const i8,
+                c_str_ptr!(
+                    "module {
+  func.func @add(%arg0 : i32) -> i32 attributes { llvm.emit_c_interface } {
+    %res = arith.addi %arg0, %arg0 : i32
+    return %res : i32
+  }
+}"
+                ),
             ),
         );
         // clang-format on
@@ -78,19 +75,19 @@ fn testSimpleExecution() {
         let mut input = 42;
         let mut result = -1;
         let mut args = [
-            &mut input as *mut _ as *mut u8,
-            &mut result as *mut _ as *mut u8,
+            &mut input as *mut _ as *mut std::ffi::c_void,
+            &mut result as *mut _ as *mut std::ffi::c_void,
         ];
         if mlirLogicalResultIsFailure(mlirExecutionEngineInvokePacked(
             jit,
-            mlirStringRefCreateFromCString("add\0".as_ptr() as *const i8),
+            mlirStringRefCreateFromCString(c_str_ptr!("add")),
             args.as_mut_ptr(),
         )) {
             eprint!("Execution engine creation failed");
             libc::abort();
         }
         // CHECK: Input: 42 Result: 84
-        print!("Input: {} Result: {}\n", input, result);
+        println!("Input: {} Result: {}", input, result);
         mlirExecutionEngineDestroy(jit);
         mlirModuleDestroy(module);
         mlirContextDestroy(ctx);
@@ -107,23 +104,24 @@ fn testOmpCreation() {
             ctx,
             mlirStringRefCreateFromCString(
                 // clang-format off
-                "module {                                                                       
-  func.func @main() attributes { llvm.emit_c_interface } {                     
-    %0 = arith.constant 0 : i32                                                
-    %1 = arith.constant 1 : i32                                                
-    %2 = arith.constant 2 : i32                                                
-    omp.parallel {                                                             
-      omp.wsloop {                                                             
-        omp.loop_nest (%3) : i32 = (%0) to (%2) step (%1) {                    
-          omp.yield                                                            
-        }                                                                      
-      }                                                                        
-      omp.terminator                                                           
-    }                                                                          
-    llvm.return                                                                
-  }                                                                            
-}\n\0"
-                    .as_ptr() as *const i8,
+                c_str_ptr!(
+                    "module {
+  func.func @main() attributes { llvm.emit_c_interface } {
+    %0 = arith.constant 0 : i32
+    %1 = arith.constant 1 : i32
+    %2 = arith.constant 2 : i32
+    omp.parallel {
+      omp.wsloop {
+        omp.loop_nest (%3) : i32 = (%0) to (%2) step (%1) {
+          omp.yield
+        }
+      }
+      omp.terminator
+    }
+    llvm.return
+  }
+}\n"
+                ),
             ),
         );
         // clang-format on
@@ -147,7 +145,7 @@ fn testOmpCreation() {
             std::process::exit(2);
         }
         // CHECK: Engine creation succeeded with OpenMP
-        print!("Engine creation succeeded with OpenMP\n");
+        println!("Engine creation succeeded with OpenMP");
         mlirExecutionEngineDestroy(jit);
         mlirModuleDestroy(module);
         mlirContextDestroy(ctx);
@@ -155,8 +153,8 @@ fn testOmpCreation() {
 }
 
 fn main() {
-    print!("Running test 'testSimpleExecution'\n");
+    println!("Running test 'testSimpleExecution'");
     testSimpleExecution();
-    print!("Running test 'testOmpCreation'\n");
+    println!("Running test 'testOmpCreation'");
     testOmpCreation();
 }

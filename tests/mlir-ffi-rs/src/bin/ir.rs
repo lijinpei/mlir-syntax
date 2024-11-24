@@ -1,19 +1,16 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use libc;
-use libm;
-
-use mlir;
-use mlir::AffineExpr::*;
-use mlir::AffineMap::*;
-use mlir::BuiltinAttributes::*;
-use mlir::BuiltinTypes::*;
-use mlir::Diagnostics::*;
-use mlir::Dialect_::Func::*;
-use mlir::IntegerSet::*;
-use mlir::RegisterEverything::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::AffineExpr::*;
+use mlir_capi::AffineMap::*;
+use mlir_capi::BuiltinAttributes::*;
+use mlir_capi::BuiltinTypes::*;
+use mlir_capi::Diagnostics::*;
+use mlir_capi::Dialect_::Func::*;
+use mlir_capi::IntegerSet::*;
+use mlir_capi::RegisterEverything::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
 struct ModuleStats {
     pub numOperations: i64,
@@ -88,7 +85,7 @@ fn collectStatsSingle(head: &mut Vec<MlirOperation>, stats: &mut ModuleStats) ->
             }
             region = mlirRegionGetNextInOperation(region);
         }
-        return 0;
+        0
     }
 }
 
@@ -364,25 +361,25 @@ fn collectStats(operation: MlirOperation) -> i32 {
         return 100;
     }
 
-    eprint!("@stats\n");
-    eprint!("Number of operations: {}\n", stats.numOperations);
-    eprint!("Number of attributes: {}\n", stats.numAttributes);
-    eprint!("Number of blocks: {}\n", stats.numBlocks);
-    eprint!("Number of regions: {}\n", stats.numRegions);
-    eprint!("Number of values: {}\n", stats.numValues);
-    eprint!("Number of block arguments: {}\n", stats.numBlockArguments);
-    eprint!("Number of op results: {}\n", stats.numOpResults);
+    eprintln!("@stats");
+    eprintln!("Number of operations: {}", stats.numOperations);
+    eprintln!("Number of attributes: {}", stats.numAttributes);
+    eprintln!("Number of blocks: {}", stats.numBlocks);
+    eprintln!("Number of regions: {}", stats.numRegions);
+    eprintln!("Number of values: {}", stats.numValues);
+    eprintln!("Number of block arguments: {}", stats.numBlockArguments);
+    eprintln!("Number of op results: {}", stats.numOpResults);
     // clang-format off
     // CHECK-LABEL: @stats
     // CHECK: Number of operations: 12
-    // CHECK: Number of attributes: 5
+    // CHECK: Number of attributes: 6
     // CHECK: Number of blocks: 3
     // CHECK: Number of regions: 3
     // CHECK: Number of values: 9
     // CHECK: Number of block arguments: 3
     // CHECK: Number of op results: 6
     // clang-format on
-    return 0;
+    0
 }
 
 fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
@@ -400,23 +397,23 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
 
         // Verify that parent operation and block report correctly.
         // CHECK: Parent operation eq: 1
-        eprint!(
-            "Parent operation eq: {}\n",
+        eprintln!(
+            "Parent operation eq: {}",
             mlirOperationEqual(mlirOperationGetParentOperation(operation), parentOperation)
         );
         // CHECK: Block eq: 1
-        eprint!(
-            "Block eq: {}\n",
+        eprintln!(
+            "Block eq: {}",
             mlirBlockEqual(mlirOperationGetBlock(operation), block)
         );
         // CHECK: Block parent operation eq: 1
-        eprint!(
-            "Block parent operation eq: {}\n",
+        eprintln!(
+            "Block parent operation eq: {}",
             mlirOperationEqual(mlirBlockGetParentOperation(block), parentOperation)
         );
         // CHECK: Block parent region eq: 1
-        eprint!(
-            "Block parent region eq: {}\n",
+        eprintln!(
+            "Block parent region eq: {}",
             mlirRegionEqual(mlirBlockGetParentRegion(block), region)
         );
 
@@ -428,14 +425,14 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         eprint!("First operation: ");
         mlirOperationPrint(
             operation,
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // clang-format off
         // CHECK:   %[[C0:.*]] = arith.constant 0 : index
         // CHECK:   %[[DIM:.*]] = memref.dim %{{.*}}, %[[C0]] : memref<?xf32>
@@ -457,13 +454,13 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
         for i in 0..identStr.length {
             eprint!("{}", *identStr.data.offset(i as isize) as u8 as char);
         }
-        eprint!("'\n");
+        eprintln!("'");
         // CHECK: Operation name: 'arith.constant'
 
         // Get the identifier again and verify equal.
         let identAgain = mlirIdentifierGet(ctx, identStr);
-        eprint!(
-            "Identifier equal: {}\n",
+        eprintln!(
+            "Identifier equal: {}",
             mlirIdentifierEqual(ident, identAgain)
         );
         // CHECK: Identifier equal: 1
@@ -476,7 +473,7 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: Terminator: func.return
 
         // Get the attribute by name.
@@ -499,12 +496,12 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: Get attr "value": 0 : index
 
         // Get a non-existing attribute and assert that it is null (sanity).
-        eprint!(
-            "does_not_exist is null: {}\n",
+        eprintln!(
+            "does_not_exist is null: {}",
             (std::ptr::null()
                 == mlirOperationGetDiscardableAttributeByName(
                     operation,
@@ -522,8 +519,8 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
-        eprint!("Value is null: {}\n", (std::ptr::null() == value.ptr) as i8);
+        eprintln!();
+        eprintln!("Value is null: {}", (std::ptr::null() == value.ptr) as i8);
         // CHECK: Result 0: {{.*}} = arith.constant 0 : index
         // CHECK: Value is null: 0
 
@@ -534,7 +531,7 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: Result 0 type: index
 
         // Set a discardable attribute.
@@ -549,26 +546,26 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: Op with set attr: {{.*}} {custom_attr = true}
 
         // Remove the attribute.
-        eprint!(
-            "Remove attr: {}\n",
+        eprintln!(
+            "Remove attr: {}",
             mlirOperationRemoveDiscardableAttributeByName(
                 operation,
                 mlirStringRefCreateFromCString("custom_attr\0".as_ptr() as *const i8)
             )
         );
-        eprint!(
-            "Remove attr again: {}\n",
+        eprintln!(
+            "Remove attr again: {}",
             mlirOperationRemoveDiscardableAttributeByName(
                 operation,
                 mlirStringRefCreateFromCString("custom_attr\0".as_ptr() as *const i8)
             )
         );
-        eprint!(
-            "Removed attr is null: {}\n",
+        eprintln!(
+            "Removed attr is null: {}",
             (std::ptr::null()
                 == mlirOperationGetDiscardableAttributeByName(
                     operation,
@@ -609,7 +606,7 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         eprint!("Op print with state: ");
         let state = mlirAsmStateCreateForOperation(parentOperation, flags);
         mlirOperationPrintWithState(
@@ -618,7 +615,7 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // clang-format off
         // CHECK: Op print with all flags: %{{.*}} = "arith.constant"() <{value = 0 : index}> {elts = dense_resource<__elided__> : tensor<4xi32>} : () -> index loc(unknown)
         // clang-format on
@@ -633,7 +630,7 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // clang-format off
         // CHECK: Op print with skip regions flag: func.func @add(%[[ARG0:.*]]: memref<?xf32>, %[[ARG1:.*]]: memref<?xf32>)
         // CHECK-NOT: constant
@@ -648,7 +645,7 @@ fn printFirstOfEach(ctx: MlirContext, mut operation: MlirOperation) {
             std::ptr::null_mut(),
         );
         // CHECK: With state: |%0|
-        eprint!("|\n");
+        eprintln!("|");
         mlirAsmStateDestroy(state);
 
         mlirOpPrintingFlagsDestroy(flags);
@@ -806,9 +803,9 @@ fn createOperationWithTypeInference(ctx: MlirContext) -> i32 {
         // CHECK: RESULT_TYPE_INFERENCE: !shape.size
         eprint!("RESULT_TYPE_INFERENCE: ");
         mlirTypeDump(mlirValueGetType(mlirOperationGetResult(op, 0)));
-        eprint!("\n");
+        eprintln!();
         mlirOperationDestroy(op);
-        return 0;
+        0
     }
 }
 
@@ -839,7 +836,7 @@ pub unsafe extern "C" fn reportResourceDelete(
     let len = libc::strlen(name as *const i8);
     let name_slice = std::slice::from_raw_parts(name, len);
     let name_str = std::str::from_utf8_unchecked(name_slice);
-    eprint!("reportResourceDelete: {}\n", name_str);
+    eprintln!("reportResourceDelete: {}", name_str);
     0
 }
 
@@ -848,7 +845,7 @@ fn stringIsEqual(lhs: *const i8, rhs: MlirStringRef) -> bool {
         if libc::strlen(lhs) as u64 != rhs.length {
             return false;
         }
-        return 0 == libc::strncmp(lhs, rhs.data, rhs.length as usize);
+        0 == libc::strncmp(lhs, rhs.data, rhs.length as usize)
     }
 }
 
@@ -878,13 +875,13 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
         if mlirIntegerTypeGetWidth(i32) != mlirIntegerTypeGetWidth(si32) {
             return 5;
         }
-        eprint!("@types\n");
+        eprintln!("@types");
         mlirTypeDump(i32);
-        eprint!("\n");
+        eprintln!();
         mlirTypeDump(si32);
-        eprint!("\n");
+        eprintln!();
         mlirTypeDump(ui32);
-        eprint!("\n");
+        eprintln!();
         // CHECK-LABEL: @types
         // CHECK: i32
         // CHECK: si32
@@ -896,7 +893,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 6;
         }
         mlirTypeDump(index);
-        eprint!("\n");
+        eprintln!();
         // CHECK: index
 
         // Floating-point types.
@@ -917,13 +914,13 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 11;
         }
         mlirTypeDump(bf16);
-        eprint!("\n");
+        eprintln!();
         mlirTypeDump(f16);
-        eprint!("\n");
+        eprintln!();
         mlirTypeDump(f32);
-        eprint!("\n");
+        eprintln!();
         mlirTypeDump(f64);
-        eprint!("\n");
+        eprintln!();
         // CHECK: bf16
         // CHECK: f16
         // CHECK: f32
@@ -935,7 +932,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 12;
         }
         mlirTypeDump(none);
-        eprint!("\n");
+        eprintln!();
         // CHECK: none
 
         // Complex type.
@@ -946,13 +943,13 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 13;
         }
         mlirTypeDump(cplx);
-        eprint!("\n");
+        eprintln!();
         // CHECK: complex<f32>
 
         // Vector (and Shaped) type. ShapedType is a common base class for vectors,
         // memrefs and tensors, one cannot create instances of this class so it is
         // tested on an instance of vector type.
-        let shape = [2 as i64, 3 as i64];
+        let shape = [2_i64, 3_i64];
         let vector = mlirVectorTypeGet(shape.len() as i64, shape.as_ptr() as *const i64, f32);
         if 0 == mlirTypeIsAVector(vector) || 0 == mlirTypeIsAShaped(vector) {
             return 14;
@@ -968,11 +965,11 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 15;
         }
         mlirTypeDump(vector);
-        eprint!("\n");
+        eprintln!();
         // CHECK: vector<2x3xf32>
 
         // Scalable vector type.
-        let scalable = [0 as u8, 1 as u8];
+        let scalable = [0_u8, 1_u8];
         let scalableVector = mlirVectorTypeGetScalable(
             shape.len() as i64,
             shape.as_ptr() as *const i64,
@@ -989,7 +986,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 17;
         }
         mlirTypeDump(scalableVector);
-        eprint!("\n");
+        eprintln!();
         // CHECK: vector<2x[3]xf32>
 
         // Ranked tensor type.
@@ -1006,7 +1003,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 18;
         }
         mlirTypeDump(rankedTensor);
-        eprint!("\n");
+        eprintln!();
         // CHECK: tensor<2x3xf32>
 
         // Unranked tensor type.
@@ -1018,7 +1015,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 19;
         }
         mlirTypeDump(unrankedTensor);
-        eprint!("\n");
+        eprintln!();
         // CHECK: tensor<*xf32>
 
         // MemRef type.
@@ -1035,7 +1032,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 20;
         }
         mlirTypeDump(memRef);
-        eprint!("\n");
+        eprintln!();
         // CHECK: memref<2x3xf32, 2>
 
         // Unranked MemRef type.
@@ -1048,7 +1045,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 21;
         }
         mlirTypeDump(unrankedMemRef);
-        eprint!("\n");
+        eprintln!();
         // CHECK: memref<*xf32, 4>
 
         // Tuple type.
@@ -1062,7 +1059,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 22;
         }
         mlirTypeDump(tuple);
-        eprint!("\n");
+        eprintln!();
         // CHECK: tuple<memref<*xf32, 4>, f32>
 
         // Function type.
@@ -1097,7 +1094,7 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 26;
         }
         mlirTypeDump(funcType);
-        eprint!("\n");
+        eprintln!();
         // CHECK: (index, i1) -> (i16, i32, i64)
 
         // Opaque type.
@@ -1113,10 +1110,10 @@ fn printBuiltinTypes(ctx: MlirContext) -> i32 {
             return 27;
         }
         mlirTypeDump(opaque);
-        eprint!("\n");
+        eprintln!();
         // CHECK: !dialect.type
 
-        return 0;
+        0
     }
 }
 
@@ -1133,7 +1130,7 @@ fn printBuiltinAttributes(ctx: MlirContext) -> i32 {
         {
             return 1;
         }
-        eprint!("@attrs\n");
+        eprintln!("@attrs");
         mlirAttributeDump(floating);
         // CHECK-LABEL: @attrs
         // CHECK: 2.000000e+00 : f64
@@ -1296,21 +1293,21 @@ fn printBuiltinAttributes(ctx: MlirContext) -> i32 {
         mlirAttributeDump(unit);
         // CHECK: unit
 
-        let shape = [1 as i64, 2 as i64];
+        let shape = [1_i64, 2_i64];
 
         let bools = [0 as std::ffi::c_int, 1 as std::ffi::c_int];
-        let uints8 = [0 as u8, 1 as u8];
-        let ints8 = [0 as i8, 1 as i8];
-        let uints16 = [0 as u16, 1 as u16];
-        let ints16 = [0 as i16, 1 as i16];
-        let uints32 = [0 as u32, 1 as u32];
-        let ints32 = [0 as i32, 1 as i32];
-        let mut uints64 = [0 as u64, 1 as u64];
-        let ints64 = [0 as i64, 1 as i64];
-        let floats = [0.0 as f32, 1.0 as f32];
-        let doubles = [0.0 as f64, 1.0 as f64];
-        let bf16s = [0x0 as u16, 0x3f80 as u16];
-        let f16s = [0x0 as u16, 0x3c00 as u16];
+        let uints8 = [0_u8, 1_u8];
+        let ints8 = [0_i8, 1_i8];
+        let uints16 = [0_u16, 1_u16];
+        let ints16 = [0_i16, 1_i16];
+        let uints32 = [0_u32, 1_u32];
+        let ints32 = [0_i32, 1_i32];
+        let mut uints64 = [0_u64, 1_u64];
+        let ints64 = [0_i64, 1_i64];
+        let floats = [0.0_f32, 1.0_f32];
+        let doubles = [0.0_f64, 1.0_f64];
+        let bf16s = [0x0_u16, 0x3f80_u16];
+        let f16s = [0x0_u16, 0x3c00_u16];
         let encoding = mlirAttributeGetNull();
         let boolElements = mlirDenseElementsAttrBoolGet(
             mlirRankedTensorTypeGet(2, shape.as_ptr(), mlirIntegerTypeGet(ctx, 1), encoding),
@@ -1774,13 +1771,14 @@ fn printBuiltinAttributes(ctx: MlirContext) -> i32 {
         let blobBlob = mlirUnmanagedDenseResourceElementsAttrGet(
             mlirRankedTensorTypeGet(2, shape.as_ptr(), mlirIntegerTypeGet(ctx, 64), encoding),
             mlirStringRefCreateFromCString("resource_i64_blob\0".as_ptr() as *const i8),
-            /*data=*/ uints64.as_ptr() as *mut u8,
+            /*data=*/ uints64.as_ptr() as *mut std::ffi::c_void,
             /*dataLength=*/ (std::mem::size_of::<u64>() * uints64.len()) as u64,
             /*dataAlignment=*/ std::mem::align_of::<u64>() as u64,
             /*dataIsMutable=*/ 0u8,
             /*deleter=*/
-            reportResourceDelete as *mut extern "C" fn(*mut u8, *const u8, u64, u64) -> u8,
-            /*userData=*/ userData as *mut u8,
+            reportResourceDelete
+                as *mut extern "C" fn(*mut std::ffi::c_void, *const std::ffi::c_void, u64, u64),
+            /*userData=*/ userData as *mut std::ffi::c_void,
         );
 
         mlirAttributeDump(uint8Blob);
@@ -1830,7 +1828,7 @@ fn printBuiltinAttributes(ctx: MlirContext) -> i32 {
             return 24;
         }
 
-        return 0;
+        0
     }
 }
 
@@ -1849,7 +1847,7 @@ fn printAffineMap(ctx: MlirContext) -> i32 {
         let permutationAffineMap =
             mlirAffineMapPermutationGet(ctx, permutation.len() as i64, permutation.as_mut_ptr());
 
-        eprint!("@affineMap\n");
+        eprintln!("@affineMap");
         mlirAffineMapDump(emptyAffineMap);
         mlirAffineMapDump(affineMap);
         mlirAffineMapDump(constAffineMap);
@@ -1963,7 +1961,7 @@ fn printAffineMap(ctx: MlirContext) -> i32 {
             return 10;
         }
 
-        let mut sub = [1 as isize];
+        let mut sub = [1_isize];
 
         let subMap = mlirAffineMapGetSubMap(
             multiDimIdentityAffineMap,
@@ -1986,7 +1984,7 @@ fn printAffineMap(ctx: MlirContext) -> i32 {
             mlirStringRefCreateFromCString("foo\0".as_ptr() as *const i8),
         )));
 
-        return 0;
+        0
     }
 }
 
@@ -2002,7 +2000,7 @@ fn printAffineExpr(ctx: MlirContext) -> i32 {
         let affineCeilDivExpr = mlirAffineCeilDivExprGet(affineDimExpr, affineSymbolExpr);
 
         // Tests mlirAffineExprDump.
-        eprint!("@affineExpr\n");
+        eprintln!("@affineExpr");
         mlirAffineExprDump(affineDimExpr);
         mlirAffineExprDump(affineSymbolExpr);
         mlirAffineExprDump(affineConstantExpr);
@@ -2152,7 +2150,7 @@ fn printAffineExpr(ctx: MlirContext) -> i32 {
             return 19;
         }
 
-        return 0;
+        0
     }
 }
 
@@ -2187,7 +2185,7 @@ fn affineMapFromExprs(ctx: MlirContext) -> i32 {
             return 4;
         }
 
-        return 0;
+        0
     }
 }
 
@@ -2279,7 +2277,7 @@ fn printIntegerSet(ctx: MlirContext) -> i32 {
             return 12;
         }
 
-        return 0;
+        0
     }
 }
 
@@ -2319,12 +2317,12 @@ fn registerOnlyStd() -> i32 {
             return 5;
         }
 
-        eprint!("@registration\n");
+        eprintln!("@registration");
         // CHECK-LABEL: @registration
 
         // CHECK: func.call is_registered: 1
-        eprint!(
-            "func.call is_registered: {}\n",
+        eprintln!(
+            "func.call is_registered: {}",
             mlirContextIsRegisteredOperation(
                 ctx,
                 mlirStringRefCreateFromCString("func.call\0".as_ptr() as *const i8)
@@ -2332,8 +2330,8 @@ fn registerOnlyStd() -> i32 {
         );
 
         // CHECK: func.not_existing_op is_registered: 0
-        eprint!(
-            "func.not_existing_op is_registered: {}\n",
+        eprintln!(
+            "func.not_existing_op is_registered: {}",
             mlirContextIsRegisteredOperation(
                 ctx,
                 mlirStringRefCreateFromCString("func.not_existing_op\0".as_ptr() as *const i8)
@@ -2341,8 +2339,8 @@ fn registerOnlyStd() -> i32 {
         );
 
         // CHECK: not_existing_dialect.not_existing_op is_registered: 0
-        eprint!(
-            "not_existing_dialect.not_existing_op is_registered: {}\n",
+        eprintln!(
+            "not_existing_dialect.not_existing_op is_registered: {}",
             mlirContextIsRegisteredOperation(
                 ctx,
                 mlirStringRefCreateFromCString(
@@ -2352,13 +2350,13 @@ fn registerOnlyStd() -> i32 {
         );
 
         mlirContextDestroy(ctx);
-        return 0;
+        0
     }
 }
 
 fn testBackreferences() -> i32 {
     unsafe {
-        eprint!("@test_backreferences\n");
+        eprintln!("@test_backreferences");
 
         let ctx = mlirContextCreate();
         mlirContextSetAllowUnregisteredDialects(ctx, 1u8);
@@ -2379,15 +2377,15 @@ fn testBackreferences() -> i32 {
         );
 
         if 0 == mlirContextEqual(ctx, mlirOperationGetContext(op)) {
-            eprint!("ERROR: Getting context from operation failed\n");
+            eprintln!("ERROR: Getting context from operation failed");
             return 1;
         }
         if 0 == mlirOperationEqual(op, mlirBlockGetParentOperation(block)) {
-            eprint!("ERROR: Getting parent operation from block failed\n");
+            eprintln!("ERROR: Getting parent operation from block failed");
             return 2;
         }
         if 0 == mlirContextEqual(ctx, mlirIdentifierGetContext(ident)) {
-            eprint!("ERROR: Getting context from identifier failed\n");
+            eprintln!("ERROR: Getting context from identifier failed");
             return 3;
         }
 
@@ -2395,14 +2393,14 @@ fn testBackreferences() -> i32 {
         mlirContextDestroy(ctx);
 
         // CHECK-LABEL: @test_backreferences
-        return 0;
+        0
     }
 }
 
 /// Tests operand APIs.
 fn testOperands() -> i32 {
     unsafe {
-        eprint!("@testOperands\n");
+        eprintln!("@testOperands");
         // CHECK-LABEL: @testOperands
 
         let ctx = mlirContextCreate();
@@ -2472,7 +2470,7 @@ fn testOperands() -> i32 {
 
         // Test operand APIs.
         let numOperands = mlirOperationGetNumOperands(op);
-        eprint!("Num Operands: {}\n", numOperands);
+        eprintln!("Num Operands: {}", numOperands);
         // CHECK: Num Operands: 1
 
         let opOperand1 = mlirOperationGetOperand(op, 0);
@@ -2497,13 +2495,13 @@ fn testOperands() -> i32 {
         // Test op operand APIs.
         let use1 = mlirValueGetFirstUse(opOperand1);
         if 0 == mlirOpOperandIsNull(use1) {
-            eprint!("ERROR: Use should be null\n");
+            eprintln!("ERROR: Use should be null");
             return 1;
         }
 
         let mut use2 = mlirValueGetFirstUse(opOperand2);
         if 0 != mlirOpOperandIsNull(use2) {
-            eprint!("ERROR: Use should not be null\n");
+            eprintln!("ERROR: Use should not be null");
             return 2;
         }
 
@@ -2513,18 +2511,15 @@ fn testOperands() -> i32 {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: Use owner: "dummy.op"
 
-        eprint!(
-            "Use operandNumber: {}\n",
-            mlirOpOperandGetOperandNumber(use2)
-        );
+        eprintln!("Use operandNumber: {}", mlirOpOperandGetOperandNumber(use2));
         // CHECK: Use operandNumber: 0
 
         use2 = mlirOpOperandGetNextUse(use2);
         if 0 == mlirOpOperandIsNull(use2) {
-            eprint!("ERROR: Next use should be null\n");
+            eprintln!("ERROR: Next use should be null");
             return 3;
         }
 
@@ -2543,7 +2538,7 @@ fn testOperands() -> i32 {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: First use owner: "dummy.op2"
 
         use3 = mlirOpOperandGetNextUse(mlirValueGetFirstUse(constOneValue));
@@ -2553,7 +2548,7 @@ fn testOperands() -> i32 {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: Second use owner: "dummy.op"
 
         let indexTwoLiteral = mlirAttributeParseGet(
@@ -2580,7 +2575,7 @@ fn testOperands() -> i32 {
 
         use3 = mlirValueGetFirstUse(constOneValue);
         if 0 == mlirOpOperandIsNull(use3) {
-            eprint!("ERROR: Use should be null\n");
+            eprintln!("ERROR: Use should be null");
             return 4;
         }
 
@@ -2591,7 +2586,7 @@ fn testOperands() -> i32 {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: First replacement use owner: "dummy.op"
 
         use4 = mlirOpOperandGetNextUse(mlirValueGetFirstUse(constTwoValue));
@@ -2601,13 +2596,13 @@ fn testOperands() -> i32 {
             printToStderr as MlirStringCallback,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
         // CHECK: Second replacement use owner: "dummy.op2"
 
         let use5 = mlirValueGetFirstUse(constTwoValue);
         let use6 = mlirOpOperandGetNextUse(use5);
         if 0 == mlirValueEqual(mlirOpOperandGetValue(use5), mlirOpOperandGetValue(use6)) {
-            eprint!("ERROR: First and second operand should share the same value\n");
+            eprintln!("ERROR: First and second operand should share the same value");
             return 5;
         }
 
@@ -2618,14 +2613,14 @@ fn testOperands() -> i32 {
         mlirOperationDestroy(constTwo);
         mlirContextDestroy(ctx);
 
-        return 0;
+        0
     }
 }
 
 /// Tests clone APIs.
 fn testClone() -> i32 {
     unsafe {
-        eprint!("@testClone\n");
+        eprintln!("@testClone");
         // CHECK-LABEL: @testClone
 
         let ctx = mlirContextCreate();
@@ -2680,13 +2675,13 @@ fn testClone() -> i32 {
         mlirOperationDestroy(constZero);
         mlirOperationDestroy(constOne);
         mlirContextDestroy(ctx);
-        return 0;
+        0
     }
 }
 
 fn testTypeID(ctx: MlirContext) -> i32 {
     unsafe {
-        eprint!("@testTypeID\n");
+        eprintln!("@testTypeID");
 
         // Test getting and comparing type and attribute type ids.
         let i32Ty = mlirIntegerTypeGet(ctx, 32);
@@ -2703,24 +2698,24 @@ fn testTypeID(ctx: MlirContext) -> i32 {
             || f32ID.ptr == std::ptr::null_mut()
             || i32AttrID.ptr == std::ptr::null_mut()
         {
-            eprint!("ERROR: Expected type ids to be present\n");
+            eprintln!("ERROR: Expected type ids to be present");
             return 1;
         }
 
         if 0 == mlirTypeIDEqual(i32ID, ui32ID)
             || mlirTypeIDHashValue(i32ID) != mlirTypeIDHashValue(ui32ID)
         {
-            eprint!("ERROR: Expected different integer types to have the same type id\n");
+            eprintln!("ERROR: Expected different integer types to have the same type id");
             return 2;
         }
 
         if 0 != mlirTypeIDEqual(i32ID, f32ID) {
-            eprint!("ERROR: Expected integer type id to not equal float type id\n");
+            eprintln!("ERROR: Expected integer type id to not equal float type id");
             return 3;
         }
 
         if 0 != mlirTypeIDEqual(i32ID, i32AttrID) {
-            eprint!("ERROR: Expected integer type id to not equal integer attribute type id\n");
+            eprintln!("ERROR: Expected integer type id to not equal integer attribute type id");
             return 4;
         }
 
@@ -2744,19 +2739,19 @@ fn testTypeID(ctx: MlirContext) -> i32 {
         let constZero = mlirOperationCreate(&mut constZeroState);
 
         if 0 == mlirOperationVerify(constZero) {
-            eprint!("ERROR: Expected operation to verify correctly\n");
+            eprintln!("ERROR: Expected operation to verify correctly");
             return 5;
         }
 
         if constZero.ptr == std::ptr::null_mut() {
-            eprint!("ERROR: Expected registered operation to be present\n");
+            eprintln!("ERROR: Expected registered operation to be present");
             return 6;
         }
 
         let registeredOpID = mlirOperationGetTypeID(constZero);
 
         if registeredOpID.ptr == std::ptr::null_mut() {
-            eprint!("ERROR: Expected registered operation type id to be present\n");
+            eprintln!("ERROR: Expected registered operation type id to be present");
             return 7;
         }
 
@@ -2768,30 +2763,30 @@ fn testTypeID(ctx: MlirContext) -> i32 {
         );
         let unregisteredOp = mlirOperationCreate(&mut opState);
         if unregisteredOp.ptr == std::ptr::null_mut() {
-            eprint!("ERROR: Expected unregistered operation to be present\n");
+            eprintln!("ERROR: Expected unregistered operation to be present");
             return 8;
         }
 
         let unregisteredOpID = mlirOperationGetTypeID(unregisteredOp);
 
         if unregisteredOpID.ptr != std::ptr::null_mut() {
-            eprint!("ERROR: Expected unregistered operation type id to be null\n");
+            eprintln!("ERROR: Expected unregistered operation type id to be null");
             return 9;
         }
 
         mlirOperationDestroy(constZero);
         mlirOperationDestroy(unregisteredOp);
 
-        return 0;
+        0
     }
 }
 
 fn mlirOperationIsNull(op: MlirOperation) -> bool {
-    return op.ptr == std::ptr::null_mut();
+    op.ptr == std::ptr::null_mut()
 }
 fn testSymbolTable(ctx: MlirContext) -> i32 {
     unsafe {
-        eprint!("@testSymbolTable\n");
+        eprintln!("@testSymbolTable");
 
         let moduleString =
             "func.func private @foo() func.func private @bar()\0".as_ptr() as *const i8;
@@ -2900,21 +2895,21 @@ fn testSymbolTable(ctx: MlirContext) -> i32 {
         mlirModuleDestroy(module);
         mlirModuleDestroy(otherModule);
 
-        return 0;
+        0
     }
 }
 
 fn mlirDialectRegistryIsNull(registry: MlirDialectRegistry) -> bool {
-    return registry.ptr == std::ptr::null_mut();
+    registry.ptr == std::ptr::null_mut()
 }
 
 fn testDialectRegistry() -> i32 {
     unsafe {
-        eprint!("@testDialectRegistry\n");
+        eprintln!("@testDialectRegistry");
 
         let registry = mlirDialectRegistryCreate();
         if mlirDialectRegistryIsNull(registry) {
-            eprint!("ERROR: Expected registry to be present\n");
+            eprintln!("ERROR: Expected registry to be present");
             return 1;
         }
 
@@ -2923,20 +2918,20 @@ fn testDialectRegistry() -> i32 {
 
         let ctx = mlirContextCreate();
         if mlirContextGetNumRegisteredDialects(ctx) != 0 {
-            eprint!("ERROR: Expected no dialects to be registered to new context\n");
+            eprintln!("ERROR: Expected no dialects to be registered to new context");
         }
 
         mlirContextAppendDialectRegistry(ctx, registry);
         if mlirContextGetNumRegisteredDialects(ctx) != 1 {
-            eprint!(
-                "ERROR: Expected the dialect in the registry to be registered to the context\n"
+            eprintln!(
+                "ERROR: Expected the dialect in the registry to be registered to the context"
             );
         }
 
         mlirContextDestroy(ctx);
         mlirDialectRegistryDestroy(registry);
 
-        return 0;
+        0
     }
 }
 
@@ -2955,8 +2950,8 @@ fn walkCallBack(op: MlirOperation, rootOpVoid: *const u8) -> MlirWalkResult {
             std::slice::from_raw_parts(op_data.data as *const u8, op_data.length as usize);
         let x_str = std::str::from_utf8_unchecked(x_slice);
         let op_data_str = std::str::from_utf8_unchecked(op_data_slice);
-        eprint!("{}: {}\n", x_str, op_data_str);
-        return MlirWalkResultAdvance;
+        eprintln!("{}: {}", x_str, op_data_str);
+        MlirWalkResultAdvance
     }
 }
 
@@ -2970,7 +2965,7 @@ fn walkCallBackTestWalkResult(op: MlirOperation, rootOpVoid: *const u8) -> MlirW
             std::slice::from_raw_parts(op_data.data as *const u8, op_data.length as usize);
         let x_str = std::str::from_utf8_unchecked(x_slice);
         let op_data_str = std::str::from_utf8_unchecked(op_data_slice);
-        eprint!("{}: {}\n", x_str, op_data_str,);
+        eprintln!("{}: {}", x_str, op_data_str,);
         if libc::strcmp(
             mlirIdentifierStr(mlirOperationGetName(op)).data,
             "func.func\0".as_ptr() as *const i8,
@@ -2985,14 +2980,14 @@ fn walkCallBackTestWalkResult(op: MlirOperation, rootOpVoid: *const u8) -> MlirW
         {
             return MlirWalkResultInterrupt;
         }
-        return MlirWalkResultAdvance;
+        MlirWalkResultAdvance
     }
 }
 
 fn testOperationWalk(ctx: MlirContext) -> i32 {
     unsafe {
         // CHECK-LABEL: @testOperationWalk
-        eprint!("@testOperationWalk\n");
+        eprintln!("@testOperationWalk");
 
         let moduleString = "module {
 func.func @foo() {
@@ -3021,8 +3016,8 @@ func.func @foo() {
         // CHECK-NEXT: i love you: builtin.module
         mlirOperationWalk(
             mlirModuleGetOperation(module),
-            walkCallBack as *mut extern "C" fn(StructMlirOperation, *mut u8) -> u32,
-            &mut data as *mut _ as *mut u8,
+            walkCallBack as *mut extern "C" fn(StructMlirOperation, *mut std::ffi::c_void) -> u32,
+            &mut data as *mut _ as *mut std::ffi::c_void,
             MlirWalkPostOrder,
         );
 
@@ -3036,8 +3031,8 @@ func.func @foo() {
         // CHECK-NEXT: i don't love you: func.return
         mlirOperationWalk(
             mlirModuleGetOperation(module),
-            walkCallBack as *mut extern "C" fn(StructMlirOperation, *mut u8) -> u32,
-            &mut data as *mut _ as *mut u8,
+            walkCallBack as *mut extern "C" fn(StructMlirOperation, *mut std::ffi::c_void) -> u32,
+            &mut data as *mut _ as *mut std::ffi::c_void,
             MlirWalkPreOrder,
         );
 
@@ -3047,8 +3042,9 @@ func.func @foo() {
         // CHECK-NEXT: interrupt: arith.addi
         mlirOperationWalk(
             mlirModuleGetOperation(module),
-            walkCallBackTestWalkResult as *mut extern "C" fn(StructMlirOperation, *mut u8) -> u32,
-            &mut data as *mut _ as *mut u8,
+            walkCallBackTestWalkResult
+                as *mut extern "C" fn(StructMlirOperation, *mut std::ffi::c_void) -> u32,
+            &mut data as *mut _ as *mut std::ffi::c_void,
             MlirWalkPostOrder,
         );
 
@@ -3059,13 +3055,14 @@ func.func @foo() {
         // CHECK-NEXT: skip: func.func
         mlirOperationWalk(
             mlirModuleGetOperation(module),
-            walkCallBackTestWalkResult as *mut extern "C" fn(StructMlirOperation, *mut u8) -> u32,
-            &mut data as *mut _ as *mut u8,
+            walkCallBackTestWalkResult
+                as *mut extern "C" fn(StructMlirOperation, *mut std::ffi::c_void) -> u32,
+            &mut data as *mut _ as *mut std::ffi::c_void,
             MlirWalkPreOrder,
         );
 
         mlirModuleDestroy(module);
-        return 0;
+        0
     }
 }
 
@@ -3092,20 +3089,20 @@ pub extern "C" fn errorHandler(
 ) -> MlirLogicalResult {
     unsafe {
         let userData = userDataPtr as i64;
-        eprint!("processing diagnostic (userData: {}) <<\n", userData);
+        eprintln!("processing diagnostic (userData: {}) <<", userData);
         mlirDiagnosticPrint(diagnostic, printToStderr as _, std::ptr::null_mut());
-        eprint!("\n");
+        eprintln!();
         let loc = mlirDiagnosticGetLocation(diagnostic);
         mlirLocationPrint(loc, printToStderr as _, std::ptr::null_mut());
         assert!(mlirDiagnosticGetNumNotes(diagnostic) == 0);
         eprint!("\n>> end of diagnostic (userData: {})\n", userData);
-        return mlirLogicalResultSuccess();
+        mlirLogicalResultSuccess()
     }
 }
 
 // Logs when the delete user data callback is called
 pub extern "C" fn deleteUserData(userData: *const u8) {
-    eprint!("deleting user data (userData: {})\n", userData as u64);
+    eprintln!("deleting user data (userData: {})", userData as u64);
 }
 
 fn testDiagnostics() {
@@ -3114,10 +3111,10 @@ fn testDiagnostics() {
         let id = mlirContextAttachDiagnosticHandler(
             ctx,
             errorHandler as _,
-            42 as i64 as *mut u8,
+            42_i64 as *mut std::ffi::c_void,
             deleteUserData as _,
         );
-        eprint!("@test_diagnostics\n");
+        eprintln!("@test_diagnostics");
         let unknownLoc = mlirLocationUnknownGet(ctx);
         mlirEmitError(unknownLoc, "test diagnostics\0".as_ptr() as *const i8);
         let unknownAttr = mlirLocationGetAttribute(unknownLoc);
@@ -3259,7 +3256,7 @@ fn main() {
         testDiagnostics();
         // CHECK: DESTROY MAIN CONTEXT
         // CHECK: reportResourceDelete: resource_i64_blob
-        eprint!("DESTROY MAIN CONTEXT\n");
+        eprintln!("DESTROY MAIN CONTEXT");
         mlirContextDestroy(ctx);
     }
 }

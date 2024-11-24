@@ -1,19 +1,20 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use mlir::Dialect_::Transform::*;
-use mlir::Dialect_::Transform_::Interpreter::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::Dialect_::Transform::*;
+use mlir_capi::Dialect_::Transform_::Interpreter::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
 use mlir_ffi_rs::common::{mlirLogicalResultIsFailure, mlirOperationIsNull};
 
 fn testApplyNamedSequence(ctx: MlirContext) -> i32 {
     unsafe {
-        eprint!("testApplyNamedSequence\n",);
+        eprintln!("testApplyNamedSequence",);
 
         let module = "module attributes {transform.with_named_sequence} {
   transform.named_sequence @__transform_main(%root: !transform.any_op) {
-    transform.print %root { name = \"from interpreter\" }: 
+    transform.print %root { name = \"from interpreter\" }:
 !transform.any_op
     transform.yield
   }
@@ -40,7 +41,7 @@ fn testApplyNamedSequence(ctx: MlirContext) -> i32 {
         if mlirLogicalResultIsFailure(result) {
             return 2;
         }
-        return 0;
+        0
     }
 }
 // CHECK-LABEL: testApplyNamedSequence

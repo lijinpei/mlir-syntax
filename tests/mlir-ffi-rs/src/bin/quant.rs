@@ -1,17 +1,17 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use mlir;
-use mlir::BuiltinTypes::*;
-use mlir::Dialect_::Quant::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::BuiltinTypes::*;
+use mlir_capi::Dialect_::Quant::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
 use mlir_ffi_rs::common::mlirTypeIsNull;
 
 // CHECK-LABEL: testTypeHierarchy
 fn testTypeHierarchy(ctx: MlirContext) {
     unsafe {
-        eprint!("testTypeHierarchy\n");
+        eprintln!("testTypeHierarchy");
 
         let i8Ty = mlirIntegerTypeGet(ctx, 8);
         let any = mlirTypeParseGet(
@@ -53,64 +53,64 @@ fn testTypeHierarchy(ctx: MlirContext) {
         );
 
         // CHECK: i8 isa QuantizedType: 0
-        eprint!("i8 isa QuantizedType: {}\n", mlirTypeIsAQuantizedType(i8Ty));
+        eprintln!("i8 isa QuantizedType: {}", mlirTypeIsAQuantizedType(i8Ty));
         // CHECK: any isa QuantizedType: 1
-        eprint!("any isa QuantizedType: {}\n", mlirTypeIsAQuantizedType(any));
+        eprintln!("any isa QuantizedType: {}", mlirTypeIsAQuantizedType(any));
         // CHECK: uniform isa QuantizedType: 1
-        eprint!(
-            "uniform isa QuantizedType: {}\n",
+        eprintln!(
+            "uniform isa QuantizedType: {}",
             mlirTypeIsAQuantizedType(uniform)
         );
         // CHECK: perAxis isa QuantizedType: 1
-        eprint!(
-            "perAxis isa QuantizedType: {}\n",
+        eprintln!(
+            "perAxis isa QuantizedType: {}",
             mlirTypeIsAQuantizedType(perAxis)
         );
         // CHECK: calibrated isa QuantizedType: 1
-        eprint!(
-            "calibrated isa QuantizedType: {}\n",
+        eprintln!(
+            "calibrated isa QuantizedType: {}",
             mlirTypeIsAQuantizedType(calibrated)
         );
 
         // CHECK: any isa AnyQuantizedType: 1
-        eprint!(
-            "any isa AnyQuantizedType: {}\n",
+        eprintln!(
+            "any isa AnyQuantizedType: {}",
             mlirTypeIsAAnyQuantizedType(any)
         );
         // CHECK: uniform isa UniformQuantizedType: 1
-        eprint!(
-            "uniform isa UniformQuantizedType: {}\n",
+        eprintln!(
+            "uniform isa UniformQuantizedType: {}",
             mlirTypeIsAUniformQuantizedType(uniform)
         );
         // CHECK: perAxis isa UniformQuantizedPerAxisType: 1
-        eprint!(
-            "perAxis isa UniformQuantizedPerAxisType: {}\n",
+        eprintln!(
+            "perAxis isa UniformQuantizedPerAxisType: {}",
             mlirTypeIsAUniformQuantizedPerAxisType(perAxis)
         );
         // CHECK: calibrated isa CalibratedQuantizedType: 1
-        eprint!(
-            "calibrated isa CalibratedQuantizedType: {}\n",
+        eprintln!(
+            "calibrated isa CalibratedQuantizedType: {}",
             mlirTypeIsACalibratedQuantizedType(calibrated)
         );
 
         // CHECK: perAxis isa UniformQuantizedType: 0
-        eprint!(
-            "perAxis isa UniformQuantizedType: {}\n",
+        eprintln!(
+            "perAxis isa UniformQuantizedType: {}",
             mlirTypeIsAUniformQuantizedType(perAxis)
         );
         // CHECK: uniform isa CalibratedQuantizedType: 0
-        eprint!(
-            "uniform isa CalibratedQuantizedType: {}\n",
+        eprintln!(
+            "uniform isa CalibratedQuantizedType: {}",
             mlirTypeIsACalibratedQuantizedType(uniform)
         );
-        eprint!("\n");
+        eprintln!();
     }
 }
 
 // CHECK-LABEL: testAnyQuantizedType
 fn testAnyQuantizedType(ctx: MlirContext) {
     unsafe {
-        eprint!("testAnyQuantizedType\n");
+        eprintln!("testAnyQuantizedType");
 
         let anyParsed = mlirTypeParseGet(
             ctx,
@@ -122,33 +122,33 @@ fn testAnyQuantizedType(ctx: MlirContext) {
         let any = mlirAnyQuantizedTypeGet(mlirQuantizedTypeGetSignedFlag(), i8Ty, f32Ty, -8, 7);
 
         // CHECK: flags: 1
-        eprint!("flags: {}\n", mlirQuantizedTypeGetFlags(any));
+        eprintln!("flags: {}", mlirQuantizedTypeGetFlags(any));
         // CHECK: signed: 1
-        eprint!("signed: {}\n", mlirQuantizedTypeIsSigned(any));
+        eprintln!("signed: {}", mlirQuantizedTypeIsSigned(any));
         // CHECK: storage type: i8
         eprint!("storage type: ");
         mlirTypeDump(mlirQuantizedTypeGetStorageType(any));
-        eprint!("\n");
+        eprintln!();
         // CHECK: expressed type: f32
         eprint!("expressed type: ");
         mlirTypeDump(mlirQuantizedTypeGetExpressedType(any));
-        eprint!("\n");
+        eprintln!();
         // CHECK: storage min: -8
-        eprint!("storage min: {}\n", mlirQuantizedTypeGetStorageTypeMin(any));
+        eprintln!("storage min: {}", mlirQuantizedTypeGetStorageTypeMin(any));
         // CHECK: storage max: 7
-        eprint!("storage max: {}\n", mlirQuantizedTypeGetStorageTypeMax(any));
+        eprintln!("storage max: {}", mlirQuantizedTypeGetStorageTypeMax(any));
         // CHECK: storage width: 8
-        eprint!(
-            "storage width: {}\n",
+        eprintln!(
+            "storage width: {}",
             mlirQuantizedTypeGetStorageTypeIntegralWidth(any)
         );
         // CHECK: quantized element type: !quant.any<i8<-8:7>:f32>
         eprint!("quantized element type: ");
         mlirTypeDump(mlirQuantizedTypeGetQuantizedElementType(any));
-        eprint!("\n");
+        eprintln!();
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(anyParsed, any));
+        eprintln!("equal: {}", mlirTypeEqual(anyParsed, any));
         // CHECK: !quant.any<i8<-8:7>:f32>
         mlirTypeDump(any);
         eprint!("\n\n");
@@ -158,7 +158,7 @@ fn testAnyQuantizedType(ctx: MlirContext) {
 // CHECK-LABEL: testUniformType
 fn testUniformType(ctx: MlirContext) {
     unsafe {
-        eprint!("testUniformType\n");
+        eprintln!("testUniformType");
 
         let uniformParsed = mlirTypeParseGet(
             ctx,
@@ -180,20 +180,20 @@ fn testUniformType(ctx: MlirContext) {
         );
 
         // CHECK: scale: 0.998720
-        eprint!("scale: {:.6}\n", mlirUniformQuantizedTypeGetScale(uniform));
+        eprintln!("scale: {:.6}", mlirUniformQuantizedTypeGetScale(uniform));
         // CHECK: zero point: 127
-        eprint!(
-            "zero point: {}\n",
+        eprintln!(
+            "zero point: {}",
             mlirUniformQuantizedTypeGetZeroPoint(uniform)
         );
         // CHECK: fixed point: 0
-        eprint!(
-            "fixed point: {}\n",
+        eprintln!(
+            "fixed point: {}",
             mlirUniformQuantizedTypeIsFixedPoint(uniform)
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(uniform, uniformParsed));
+        eprintln!("equal: {}", mlirTypeEqual(uniform, uniformParsed));
         // CHECK: !quant.uniform<i8<-8:7>:f32, 9.987200e-01:127>
         mlirTypeDump(uniform);
         eprint!("\n\n");
@@ -203,7 +203,7 @@ fn testUniformType(ctx: MlirContext) {
 // CHECK-LABEL: testUniformPerAxisType
 fn testUniformPerAxisType(ctx: MlirContext) {
     unsafe {
-        eprint!("testUniformPerAxisType\n");
+        eprintln!("testUniformPerAxisType");
 
         let perAxisParsed = mlirTypeParseGet(
             ctx,
@@ -233,43 +233,43 @@ fn testUniformPerAxisType(ctx: MlirContext) {
         );
 
         // CHECK: num dims: 2
-        eprint!(
-            "num dims: {}\n",
+        eprintln!(
+            "num dims: {}",
             mlirUniformQuantizedPerAxisTypeGetNumDims(perAxis)
         );
         // CHECK: scale 0: 200.000000
-        eprint!(
-            "scale 0: {:.6}\n",
+        eprintln!(
+            "scale 0: {:.6}",
             mlirUniformQuantizedPerAxisTypeGetScale(perAxis, 0)
         );
         // CHECK: scale 1: 0.998720
-        eprint!(
-            "scale 1: {:.6}\n",
+        eprintln!(
+            "scale 1: {:.6}",
             mlirUniformQuantizedPerAxisTypeGetScale(perAxis, 1)
         );
         // CHECK: zero point 0: 0
-        eprint!(
-            "zero point 0: {}\n",
+        eprintln!(
+            "zero point 0: {}",
             mlirUniformQuantizedPerAxisTypeGetZeroPoint(perAxis, 0)
         );
         // CHECK: zero point 1: 120
-        eprint!(
-            "zero point 1: {}\n",
+        eprintln!(
+            "zero point 1: {}",
             mlirUniformQuantizedPerAxisTypeGetZeroPoint(perAxis, 1)
         );
         // CHECK: quantized dim: 1
-        eprint!(
-            "quantized dim: {}\n",
+        eprintln!(
+            "quantized dim: {}",
             mlirUniformQuantizedPerAxisTypeGetQuantizedDimension(perAxis)
         );
         // CHECK: fixed point: 0
-        eprint!(
-            "fixed point: {}\n",
+        eprintln!(
+            "fixed point: {}",
             mlirUniformQuantizedPerAxisTypeIsFixedPoint(perAxis)
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(perAxis, perAxisParsed));
+        eprintln!("equal: {}", mlirTypeEqual(perAxis, perAxisParsed));
         // CHECK: !quant.uniform<i8:f32:1, {2.000000e+02,9.987200e-01:120}>
         mlirTypeDump(perAxis);
         eprint!("\n\n");
@@ -279,7 +279,7 @@ fn testUniformPerAxisType(ctx: MlirContext) {
 // CHECK-LABEL: testCalibratedType
 fn testCalibratedType(ctx: MlirContext) {
     unsafe {
-        eprint!("testCalibratedType\n");
+        eprintln!("testCalibratedType");
 
         let calibratedParsed = mlirTypeParseGet(
             ctx,
@@ -292,18 +292,12 @@ fn testCalibratedType(ctx: MlirContext) {
         let calibrated = mlirCalibratedQuantizedTypeGet(f32Ty, -0.998, 1.2321);
 
         // CHECK: min: -0.998000
-        eprint!(
-            "min: {:.6}\n",
-            mlirCalibratedQuantizedTypeGetMin(calibrated)
-        );
+        eprintln!("min: {:.6}", mlirCalibratedQuantizedTypeGetMin(calibrated));
         // CHECK: max: 1.232100
-        eprint!(
-            "max: {:.6}\n",
-            mlirCalibratedQuantizedTypeGetMax(calibrated)
-        );
+        eprintln!("max: {:.6}", mlirCalibratedQuantizedTypeGetMax(calibrated));
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(calibrated, calibratedParsed));
+        eprintln!("equal: {}", mlirTypeEqual(calibrated, calibratedParsed));
         // CHECK: !quant.calibrated<f32<-0.998:1.232100e+00>>
         mlirTypeDump(calibrated);
         eprint!("\n\n");

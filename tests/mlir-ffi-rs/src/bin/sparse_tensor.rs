@@ -1,25 +1,25 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use mlir;
-use mlir::AffineMap::*;
-use mlir::Dialect_::SparseTensor::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::AffineMap::*;
+use mlir_capi::Dialect_::SparseTensor::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
 // CHECK-LABEL: testRoundtripEncoding()
 fn testRoundtripEncoding(ctx: MlirContext) -> i32 {
     unsafe {
-        eprint!("testRoundtripEncoding()\n");
+        eprintln!("testRoundtripEncoding()");
         // clang-format off
-        let originalAsm = "#sparse_tensor.encoding<{ 
-map = [s0](d0, d1) -> (s0 : dense, d0 : compressed, d1 : compressed), 
+        let originalAsm = "#sparse_tensor.encoding<{
+map = [s0](d0, d1) -> (s0 : dense, d0 : compressed, d1 : compressed),
 posWidth = 32, crdWidth = 64, explicitVal = 1 : i64}>\0"
             .as_ptr() as *const i8;
         // clang-format on
         let originalAttr = mlirAttributeParseGet(ctx, mlirStringRefCreateFromCString(originalAsm));
         // CHECK: isa: 1
-        eprint!(
-            "isa: {}\n",
+        eprintln!(
+            "isa: {}",
             mlirAttributeIsASparseTensorEncodingAttr(originalAttr)
         );
         let dimToLvl = mlirSparseTensorEncodingAttrGetDimToLvl(originalAttr);
@@ -33,14 +33,14 @@ posWidth = 32, crdWidth = 64, explicitVal = 1 : i64}>\0"
         let mut lvlTypes = Vec::new();
         for l in 0..lvlRank {
             lvlTypes.push(mlirSparseTensorEncodingAttrGetLvlType(originalAttr, l));
-            eprint!("level_type: {}\n", lvlTypes[l as usize]);
+            eprintln!("level_type: {}", lvlTypes[l as usize]);
         }
         // CHECK: posWidth: 32
         let posWidth = mlirSparseTensorEncodingAttrGetPosWidth(originalAttr);
-        eprint!("posWidth: {}\n", posWidth);
+        eprintln!("posWidth: {}", posWidth);
         // CHECK: crdWidth: 64
         let crdWidth = mlirSparseTensorEncodingAttrGetCrdWidth(originalAttr);
-        eprint!("crdWidth: {}\n", crdWidth);
+        eprintln!("crdWidth: {}", crdWidth);
 
         // CHECK: explicitVal: 1 : i64
         let explicitVal = mlirSparseTensorEncodingAttrGetExplicitVal(originalAttr);
@@ -64,8 +64,8 @@ posWidth = 32, crdWidth = 64, explicitVal = 1 : i64}>\0"
         );
         mlirAttributeDump(newAttr); // For debugging filecheck output.
                                     // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirAttributeEqual(originalAttr, newAttr));
-        return 0;
+        eprintln!("equal: {}", mlirAttributeEqual(originalAttr, newAttr));
+        0
     }
 }
 

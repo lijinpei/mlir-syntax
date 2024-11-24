@@ -1,21 +1,19 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use libc;
+use mlir_capi::BuiltinAttributes::*;
+use mlir_capi::BuiltinTypes::*;
+use mlir_capi::Dialect_::LLVM::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
-use mlir;
-use mlir::BuiltinAttributes::*;
-use mlir::BuiltinTypes::*;
-use mlir::Dialect_::LLVM::*;
-use mlir::Support::*;
-use mlir::IR::*;
-
-use llvm::DebugInfo::*;
+use llvm_capi::DebugInfo::*;
 use mlir_ffi_rs::common::mlirLogicalResultIsSuccess;
 
 // CHECK-LABEL: testTypeCreation()
 fn testTypeCreation(ctx: MlirContext) {
     unsafe {
-        eprint!("testTypeCreation()\n");
+        eprintln!("testTypeCreation()");
         let i8Ty = mlirIntegerTypeGet(ctx, 8);
         let i32Ty = mlirIntegerTypeGet(ctx, 32);
         let i64Ty = mlirIntegerTypeGet(ctx, 64);
@@ -29,7 +27,7 @@ fn testTypeCreation(ctx: MlirContext) {
             let len = libc::strlen(ptr_text);
             let tmp_slice = std::slice::from_raw_parts(ptr_u8, len);
             let tmp_str = std::str::from_utf8_unchecked(tmp_slice);
-            eprint!("{}: {}\n", tmp_str, mlirTypeEqual(ptr, ptr_ref));
+            eprintln!("{}: {}", tmp_str, mlirTypeEqual(ptr, ptr_ref));
         }
 
         let ptr_addr_text = "!llvm.ptr<42>\0".as_ptr() as *const i8;
@@ -41,7 +39,7 @@ fn testTypeCreation(ctx: MlirContext) {
             let len = libc::strlen(ptr_addr_text);
             let tmp_slice = std::slice::from_raw_parts(ptr_u8, len);
             let tmp_str = std::str::from_utf8_unchecked(tmp_slice);
-            eprint!("{}: {}\n", tmp_str, mlirTypeEqual(ptr_addr, ptr_addr_ref));
+            eprintln!("{}: {}", tmp_str, mlirTypeEqual(ptr_addr, ptr_addr_ref));
         }
 
         let voidt_text = "!llvm.void\0".as_ptr() as *const i8;
@@ -53,7 +51,7 @@ fn testTypeCreation(ctx: MlirContext) {
             let len = libc::strlen(voidt_text);
             let tmp_slice = std::slice::from_raw_parts(ptr_u8, len);
             let tmp_str = std::str::from_utf8_unchecked(tmp_slice);
-            eprint!("{}: {}\n", tmp_str, mlirTypeEqual(voidt, voidt_ref));
+            eprintln!("{}: {}", tmp_str, mlirTypeEqual(voidt, voidt_ref));
         }
 
         let i32_4_text = "!llvm.array<4 x i32>\0".as_ptr() as *const i8;
@@ -65,7 +63,7 @@ fn testTypeCreation(ctx: MlirContext) {
             let len = libc::strlen(i32_4_text);
             let tmp_slice = std::slice::from_raw_parts(ptr_u8, len);
             let tmp_str = std::str::from_utf8_unchecked(tmp_slice);
-            eprint!("{}: {}\n", tmp_str, mlirTypeEqual(i32_4, i32_4_ref));
+            eprintln!("{}: {}", tmp_str, mlirTypeEqual(i32_4, i32_4_ref));
         }
 
         let i8_i32_i64_text = "!llvm.func<i8 (i32, i64)>\0".as_ptr() as *const i8;
@@ -78,11 +76,7 @@ fn testTypeCreation(ctx: MlirContext) {
             let len = libc::strlen(i8_i32_i64_text);
             let tmp_slice = std::slice::from_raw_parts(ptr_u8, len);
             let tmp_str = std::str::from_utf8_unchecked(tmp_slice);
-            eprint!(
-                "{}: {}\n",
-                tmp_str,
-                mlirTypeEqual(i8_i32_i64, i8_i32_i64_ref)
-            );
+            eprintln!("{}: {}", tmp_str, mlirTypeEqual(i8_i32_i64, i8_i32_i64_ref));
         }
 
         let i32_i64_s_text = "!llvm.struct<(i32, i64)>\0".as_ptr() as *const i8;
@@ -94,7 +88,7 @@ fn testTypeCreation(ctx: MlirContext) {
             let len = libc::strlen(i32_i64_s_text);
             let tmp_slice = std::slice::from_raw_parts(ptr_u8, len);
             let tmp_str = std::str::from_utf8_unchecked(tmp_slice);
-            eprint!("{}: {}\n", tmp_str, mlirTypeEqual(i32_i64_s, i32_i64_s_ref));
+            eprintln!("{}: {}", tmp_str, mlirTypeEqual(i32_i64_s, i32_i64_s_ref));
         }
     }
 }
@@ -102,7 +96,7 @@ fn testTypeCreation(ctx: MlirContext) {
 // CHECK-LABEL: testStructTypeCreation
 fn testStructTypeCreation(ctx: MlirContext) -> i32 {
     unsafe {
-        eprint!("testStructTypeCreation\n");
+        eprintln!("testStructTypeCreation");
 
         // CHECK: !llvm.struct<()>
         mlirTypeDump(mlirLLVMStructTypeLiteralGet(
@@ -146,8 +140,8 @@ fn testStructTypeCreation(ctx: MlirContext) -> i32 {
         // CHECK: i8
         // CHECK: i32
         // CHECK: i64
-        eprint!(
-            "num elements: {}\n",
+        eprintln!(
+            "num elements: {}",
             mlirLLVMStructTypeGetNumElementTypes(literal)
         );
         mlirTypeDump(mlirLLVMStructTypeGetElementType(literal, 0));
@@ -322,14 +316,14 @@ fn testStructTypeCreation(ctx: MlirContext) -> i32 {
             return 17;
         }
 
-        return 0;
+        0
     }
 }
 
 // CHECK-LABEL: testLLVMAttributes
 fn testLLVMAttributes(ctx: MlirContext) {
     unsafe {
-        eprint!("testLLVMAttributes\n");
+        eprintln!("testLLVMAttributes");
 
         // CHECK: #llvm.linkage<internal>
         mlirAttributeDump(mlirLLVMLinkageAttrGet(ctx, MlirLLVMLinkageInternal));
@@ -343,7 +337,7 @@ fn testLLVMAttributes(ctx: MlirContext) {
 // CHECK-LABEL: testDebugInfoAttributes
 fn testDebugInfoAttributes(ctx: MlirContext) {
     unsafe {
-        eprint!("testDebugInfoAttributes\n");
+        eprintln!("testDebugInfoAttributes");
 
         let foo = mlirStringAttrGet(
             ctx,

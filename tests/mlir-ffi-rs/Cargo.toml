@@ -4,55 +4,55 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mlir = { path = "../../build/ffi/mlir" }
-llvm = { path = "../../build/ffi/llvm" }
+mlir-capi = { git = "https://github.com/lijinpei/mlir-capi-rs.git" }
+llvm-capi = { git = "https://github.com/lijinpei/llvm-capi-rs.git" }
 libc = "0.2"
 libm = "0.2.11"
 
 [[bin]]
 name = "ir"
-path = "src/ir.rs"
+path = "src/bin/ir.rs"
 
 [[bin]]
 name = "pass"
-path = "src/pass.rs"
+path = "src/bin/pass.rs"
 
 [[bin]]
 name = "rewrite"
-path = "src/rewrite.rs"
+path = "src/bin/rewrite.rs"
 
 [[bin]]
 name = "llvm"
-path = "src/llvm.rs"
+path = "src/bin/llvm.rs"
 
 [[bin]]
 name = "pdl"
-path = "src/pdl.rs"
+path = "src/bin/pdl.rs"
 
 [[bin]]
 name = "quant"
-path = "src/quant.rs"
+path = "src/bin/quant.rs"
 
 [[bin]]
 name = "execution_engine"
-path = "src/execution_engine.rs"
+path = "src/bin/execution_engine.rs"
 
 [[bin]]
 name = "sparse_tensor"
-path = "src/sparse_tensor.rs"
+path = "src/bin/sparse_tensor.rs"
 
 [[bin]]
 name = "transform"
-path = "src/transform.rs"
+path = "src/bin/transform.rs"
 
 [[bin]]
 name = "transform_interpreter"
-path = "src/transform_interpreter.rs"
+path = "src/bin/transform_interpreter.rs"
 
 [[bin]]
 name = "translation"
-path = "src/translation.rs"
+path = "src/bin/translation.rs"
 
 [[bin]]
 name = "irdl"
-path = "src/irdl.rs"
+path = "src/bin/irdl.rs"

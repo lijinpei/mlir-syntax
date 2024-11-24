@@ -1,3 +1,7 @@
 /build/
 /compile_commands.json
 /tests/mlir-ffi-rs/target/
+**/.lit_test_times.txt
+**/__pycache__/
+/venv/
+/home/

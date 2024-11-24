@@ -1,14 +1,12 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use libc;
-
-use mlir;
-use mlir::Dialect_::Func::*;
-use mlir::Pass::*;
-use mlir::RegisterEverything::*;
-use mlir::Support::*;
-use mlir::Transforms::*;
-use mlir::IR::*;
+use mlir_capi::Dialect_::Func::*;
+use mlir_capi::Pass::*;
+use mlir_capi::RegisterEverything::*;
+use mlir_capi::Support::*;
+use mlir_capi::Transforms::*;
+use mlir_capi::IR::*;
 use mlir_ffi_rs::common::mlirLogicalResultIsSuccess;
 
 fn registerAllUpstreamDialects(ctx: MlirContext) {
@@ -21,11 +19,11 @@ fn registerAllUpstreamDialects(ctx: MlirContext) {
 }
 
 fn mlirLogicalResultIsFailure(res: MlirLogicalResult) -> bool {
-    return res.value == 0;
+    res.value == 0
 }
 
 fn mlirOperationIsNull(op: MlirOperation) -> bool {
-    return op.ptr == std::ptr::null_mut();
+    op.ptr == std::ptr::null_mut()
 }
 
 fn mlirLogicalResultSuccess() -> MlirLogicalResult {
@@ -42,7 +40,7 @@ fn testRunPassOnModule() {
 
         let funcAsm = "func.func @foo(%arg0 : i32) -> i32 {
   %res = arith.addi %arg0, %arg0 : i32
-  return %res : i32 
+  return %res : i32
 }\0"
         .as_ptr() as *const i8;
 
@@ -52,7 +50,7 @@ fn testRunPassOnModule() {
             mlirStringRefCreateFromCString("funcAsm\0".as_ptr() as *const i8),
         );
         if func.ptr == std::ptr::null_mut() {
-            eprint!("Unexpected failure parsing asm.\n");
+            eprintln!("Unexpected failure parsing asm.");
             libc::exit(libc::EXIT_FAILURE);
         }
 
@@ -67,7 +65,7 @@ fn testRunPassOnModule() {
             mlirPassManagerAddOwnedPass(pm, printOpStatPass);
             let success = mlirPassManagerRunOnOp(pm, func);
             if mlirLogicalResultIsFailure(success) {
-                eprint!("Unexpected failure running pass manager.\n");
+                eprintln!("Unexpected failure running pass manager.");
                 libc::exit(libc::EXIT_FAILURE);
             }
             mlirPassManagerDestroy(pm);
@@ -189,19 +187,19 @@ fn testPrintPassPipeline() {
             printToStderr as _,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
 
         // Print the pipeline nested one level down
         // CHECK: Nested Module: builtin.module(func.func(print-op-stats{json=false}))
         eprint!("Nested Module: ");
         mlirPrintPassPipeline(nestedModulePm, printToStderr as _, std::ptr::null_mut());
-        eprint!("\n");
+        eprintln!();
 
         // Print the pipeline nested two levels down
         // CHECK: Nested Module>Func: func.func(print-op-stats{json=false})
         eprint!("Nested Module>Func: ");
         mlirPrintPassPipeline(nestedFuncPm, printToStderr as _, std::ptr::null_mut());
-        eprint!("\n");
+        eprintln!();
 
         mlirPassManagerDestroy(pm);
         mlirContextDestroy(ctx);
@@ -223,7 +221,7 @@ fn testParsePassPipeline() {
         );
         // Expect a failure, we haven't registered the print-op-stats pass yet.
         if mlirLogicalResultIsSuccess(status) {
-            eprint!("Unexpected success parsing pipeline without registering the pass\n");
+            eprintln!("Unexpected success parsing pipeline without registering the pass");
             libc::exit(libc::EXIT_FAILURE);
         }
         // Try again after registrating the pass.
@@ -238,7 +236,7 @@ fn testParsePassPipeline() {
         );
         // Expect a failure, we haven't registered the print-op-stats pass yet.
         if mlirLogicalResultIsFailure(status) {
-            eprint!("Unexpected failure parsing pipeline after registering the pass\n");
+            eprintln!("Unexpected failure parsing pipeline after registering the pass");
             libc::exit(libc::EXIT_FAILURE);
         }
 
@@ -249,7 +247,7 @@ fn testParsePassPipeline() {
             printToStderr as _,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
 
         // Try appending a pass:
         status = mlirOpPassManagerAddPipeline(
@@ -261,7 +259,7 @@ fn testParsePassPipeline() {
             std::ptr::null_mut(),
         );
         if mlirLogicalResultIsFailure(status) {
-            eprint!("Unexpected failure appending pipeline\n");
+            eprintln!("Unexpected failure appending pipeline");
             libc::exit(libc::EXIT_FAILURE);
         }
         //      CHECK: Appended: builtin.module(
@@ -274,7 +272,7 @@ fn testParsePassPipeline() {
             printToStderr as _,
             std::ptr::null_mut(),
         );
-        eprint!("\n");
+        eprintln!();
 
         mlirPassManagerDestroy(pm);
         mlirContextDestroy(ctx);
@@ -295,7 +293,7 @@ fn testParseErrorCapture() {
 
         // CHECK: mlirParsePassPipeline:
         // CHECK: expected pass pipeline to be wrapped with the anchor operation type
-        eprint!("mlirParsePassPipeline:\n");
+        eprintln!("mlirParsePassPipeline:");
         if mlirLogicalResultIsSuccess(mlirParsePassPipeline(
             opm,
             invalidPipeline,
@@ -304,11 +302,11 @@ fn testParseErrorCapture() {
         )) {
             libc::exit(libc::EXIT_FAILURE);
         }
-        eprint!("\n");
+        eprintln!();
 
         // CHECK: mlirOpPassManagerAddPipeline:
         // CHECK: 'invalid' does not refer to a registered pass or pass pipeline
-        eprint!("mlirOpPassManagerAddPipeline:\n");
+        eprintln!("mlirOpPassManagerAddPipeline:");
         if mlirLogicalResultIsSuccess(mlirOpPassManagerAddPipeline(
             opm,
             invalidPipeline,
@@ -317,7 +315,7 @@ fn testParseErrorCapture() {
         )) {
             libc::exit(libc::EXIT_FAILURE);
         }
-        eprint!("\n");
+        eprintln!();
 
         // Make sure all output is going through the callback.
         // CHECK: dontPrint: <>
@@ -338,7 +336,7 @@ fn testParseErrorCapture() {
         )) {
             libc::exit(libc::EXIT_FAILURE);
         }
-        eprint!(">\n");
+        eprintln!(">");
 
         mlirPassManagerDestroy(pm);
         mlirContextDestroy(ctx);
@@ -434,13 +432,13 @@ fn makeTestExternalPassCallbacks(
     initializePass: *mut fn(ctx: MlirContext, userData: *mut u8) -> MlirLogicalResult,
     runPass: *mut fn(op: MlirOperation, MlirExternalPass, userData: *mut u8),
 ) -> MlirExternalPassCallbacks {
-    return MlirExternalPassCallbacks {
+    MlirExternalPassCallbacks {
         construct: testConstructExternalPass as _,
         destruct: testDestructExternalPass as _,
         initialize: initializePass as _,
         clone: testCloneExternalPass as _,
         run: runPass as _,
-    };
+    }
 }
 
 fn testExternalPass() {
@@ -448,11 +446,11 @@ fn testExternalPass() {
         let ctx = mlirContextCreate();
         registerAllUpstreamDialects(ctx);
 
-        let moduleAsm = "module {                                 
-  func.func @foo(%arg0 : i32) -> i32 {   
-    %res = arith.addi %arg0, %arg0 : i32 
-    return %res : i32                    
-  }                                      
+        let moduleAsm = "module {
+  func.func @foo(%arg0 : i32) -> i32 {
+    %res = arith.addi %arg0, %arg0 : i32
+    return %res : i32
+  }
 }\0"
         .as_ptr() as *const i8;
         let module = mlirOperationCreateParse(
@@ -461,7 +459,7 @@ fn testExternalPass() {
             mlirStringRefCreateFromCString("moduleAsm\0".as_ptr() as *const i8),
         );
         if mlirOperationIsNull(module) {
-            eprint!("Unexpected failure parsing module.\n");
+            eprintln!("Unexpected failure parsing module.");
             libc::exit(libc::EXIT_FAILURE);
         }
 
@@ -497,7 +495,7 @@ fn testExternalPass() {
             );
 
             if userData.constructCallCount != 1 {
-                eprint!("Expected constructCallCount to be 1\n");
+                eprintln!("Expected constructCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
@@ -505,19 +503,19 @@ fn testExternalPass() {
             mlirPassManagerAddOwnedPass(pm, externalPass);
             let success = mlirPassManagerRunOnOp(pm, module);
             if mlirLogicalResultIsFailure(success) {
-                eprint!("Unexpected failure running external pass.\n");
+                eprintln!("Unexpected failure running external pass.");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             if userData.runCallCount != 1 {
-                eprint!("Expected runCallCount to be 1\n");
+                eprintln!("Expected runCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             mlirPassManagerDestroy(pm);
 
             if userData.destructCallCount != userData.constructCallCount {
-                eprint!("Expected destructCallCount to be equal to constructCallCount\n");
+                eprintln!("Expected destructCallCount to be equal to constructCallCount");
                 libc::exit(libc::EXIT_FAILURE);
             }
         }
@@ -552,7 +550,7 @@ fn testExternalPass() {
             );
 
             if userData.constructCallCount != 1 {
-                eprint!("Expected constructCallCount to be 1\n");
+                eprintln!("Expected constructCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
@@ -561,26 +559,26 @@ fn testExternalPass() {
             mlirOpPassManagerAddOwnedPass(nestedFuncPm, externalPass);
             let success = mlirPassManagerRunOnOp(pm, module);
             if mlirLogicalResultIsFailure(success) {
-                eprint!("Unexpected failure running external operation pass.\n");
+                eprintln!("Unexpected failure running external operation pass.");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             // Since this is a nested pass, it can be cloned and run in parallel
             if userData.cloneCallCount != userData.constructCallCount - 1 {
-                eprint!("Expected constructCallCount to be 1\n");
+                eprintln!("Expected constructCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             // The pass should only be run once this there is only one func op
             if userData.runCallCount != 1 {
-                eprint!("Expected runCallCount to be 1\n");
+                eprintln!("Expected runCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             mlirPassManagerDestroy(pm);
 
             if userData.destructCallCount != userData.constructCallCount {
-                eprint!("Expected destructCallCount to be equal to constructCallCount\n");
+                eprintln!("Expected destructCallCount to be equal to constructCallCount");
                 libc::exit(libc::EXIT_FAILURE);
             }
         }
@@ -615,7 +613,7 @@ fn testExternalPass() {
             );
 
             if userData.constructCallCount != 1 {
-                eprint!("Expected constructCallCount to be 1\n");
+                eprintln!("Expected constructCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
@@ -623,24 +621,24 @@ fn testExternalPass() {
             mlirPassManagerAddOwnedPass(pm, externalPass);
             let success = mlirPassManagerRunOnOp(pm, module);
             if mlirLogicalResultIsFailure(success) {
-                eprint!("Unexpected failure running external pass.\n");
+                eprintln!("Unexpected failure running external pass.");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             if userData.initializeCallCount != 1 {
-                eprint!("Expected initializeCallCount to be 1\n");
+                eprintln!("Expected initializeCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             if userData.runCallCount != 1 {
-                eprint!("Expected runCallCount to be 1\n");
+                eprintln!("Expected runCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             mlirPassManagerDestroy(pm);
 
             if userData.destructCallCount != userData.constructCallCount {
-                eprint!("Expected destructCallCount to be equal to constructCallCount\n");
+                eprintln!("Expected destructCallCount to be equal to constructCallCount");
                 libc::exit(libc::EXIT_FAILURE);
             }
         }
@@ -677,7 +675,7 @@ fn testExternalPass() {
             );
 
             if userData.constructCallCount != 1 {
-                eprint!("Expected constructCallCount to be 1\n");
+                eprintln!("Expected constructCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
@@ -685,24 +683,24 @@ fn testExternalPass() {
             mlirPassManagerAddOwnedPass(pm, externalPass);
             let success = mlirPassManagerRunOnOp(pm, module);
             if mlirLogicalResultIsSuccess(success) {
-                eprint!("Expected failure running pass manager on failing external pass.\n");
+                eprintln!("Expected failure running pass manager on failing external pass.");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             if userData.initializeCallCount != 1 {
-                eprint!("Expected initializeCallCount to be 1\n");
+                eprintln!("Expected initializeCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             if userData.runCallCount != 0 {
-                eprint!("Expected runCallCount to be 0\n");
+                eprintln!("Expected runCallCount to be 0");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             mlirPassManagerDestroy(pm);
 
             if userData.destructCallCount != userData.constructCallCount {
-                eprint!("Expected destructCallCount to be equal to constructCallCount\n");
+                eprintln!("Expected destructCallCount to be equal to constructCallCount");
                 libc::exit(libc::EXIT_FAILURE);
             }
         }
@@ -739,7 +737,7 @@ fn testExternalPass() {
             );
 
             if userData.constructCallCount != 1 {
-                eprint!("Expected constructCallCount to be 1\n");
+                eprintln!("Expected constructCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
@@ -747,19 +745,19 @@ fn testExternalPass() {
             mlirPassManagerAddOwnedPass(pm, externalPass);
             let success = mlirPassManagerRunOnOp(pm, module);
             if mlirLogicalResultIsSuccess(success) {
-                eprint!("Expected failure running pass manager on failing external pass-01.\n");
+                eprintln!("Expected failure running pass manager on failing external pass-01.");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             if userData.runCallCount != 1 {
-                eprint!("Expected runCallCount to be 1\n");
+                eprintln!("Expected runCallCount to be 1");
                 libc::exit(libc::EXIT_FAILURE);
             }
 
             mlirPassManagerDestroy(pm);
 
             if userData.destructCallCount != userData.constructCallCount {
-                eprint!("Expected destructCallCount to be equal to constructCallCount\n");
+                eprintln!("Expected destructCallCount to be equal to constructCallCount");
                 libc::exit(libc::EXIT_FAILURE);
             }
         }

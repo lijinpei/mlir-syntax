@@ -1,15 +1,15 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use mlir;
-use mlir::Dialect_::PDL::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::Dialect_::PDL::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 use mlir_ffi_rs::common::mlirTypeIsNull;
 
 // CHECK-LABEL: testAttributeType
 fn testAttributeType(ctx: MlirContext) {
     unsafe {
-        eprint!("testAttributeType\n");
+        eprintln!("testAttributeType");
 
         let parsedType = mlirTypeParseGet(
             ctx,
@@ -27,69 +27,66 @@ fn testAttributeType(ctx: MlirContext) {
         );
 
         // CHECK: parsedType isa PDLType: 1
-        eprint!(
-            "parsedType isa PDLType: {}\n",
-            mlirTypeIsAPDLType(parsedType)
-        );
+        eprintln!("parsedType isa PDLType: {}", mlirTypeIsAPDLType(parsedType));
         // CHECK: parsedType isa PDLAttributeType: 1
-        eprint!(
-            "parsedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(parsedType)
         );
         // CHECK: parsedType isa PDLOperationType: 0
-        eprint!(
-            "parsedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "parsedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(parsedType)
         );
         // CHECK: parsedType isa PDLRangeType: 0
-        eprint!(
-            "parsedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(parsedType)
         );
         // CHECK: parsedType isa PDLTypeType: 0
-        eprint!(
-            "parsedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(parsedType)
         );
         // CHECK: parsedType isa PDLValueType: 0
-        eprint!(
-            "parsedType isa PDLValueType: {}\n",
+        eprintln!(
+            "parsedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(parsedType)
         );
 
         // CHECK: constructedType isa PDLType: 1
-        eprint!(
-            "constructedType isa PDLType: {}\n",
+        eprintln!(
+            "constructedType isa PDLType: {}",
             mlirTypeIsAPDLType(constructedType)
         );
         // CHECK: constructedType isa PDLAttributeType: 1
-        eprint!(
-            "constructedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(constructedType)
         );
         // CHECK: constructedType isa PDLOperationType: 0
-        eprint!(
-            "constructedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "constructedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(constructedType)
         );
         // CHECK: constructedType isa PDLRangeType: 0
-        eprint!(
-            "constructedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(constructedType)
         );
         // CHECK: constructedType isa PDLTypeType: 0
-        eprint!(
-            "constructedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(constructedType)
         );
         // CHECK: constructedType isa PDLValueType: 0
-        eprint!(
-            "constructedType isa PDLValueType: {}\n",
+        eprintln!(
+            "constructedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(constructedType)
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(parsedType, constructedType));
+        eprintln!("equal: {}", mlirTypeEqual(parsedType, constructedType));
 
         // CHECK: !pdl.attribute
         mlirTypeDump(parsedType);
@@ -103,7 +100,7 @@ fn testAttributeType(ctx: MlirContext) {
 // CHECK-LABEL: testOperationType
 fn testOperationType(ctx: MlirContext) {
     unsafe {
-        eprint!("testOperationType\n");
+        eprintln!("testOperationType");
 
         let parsedType = mlirTypeParseGet(
             ctx,
@@ -121,69 +118,66 @@ fn testOperationType(ctx: MlirContext) {
         );
 
         // CHECK: parsedType isa PDLType: 1
-        eprint!(
-            "parsedType isa PDLType: {}\n",
-            mlirTypeIsAPDLType(parsedType)
-        );
+        eprintln!("parsedType isa PDLType: {}", mlirTypeIsAPDLType(parsedType));
         // CHECK: parsedType isa PDLAttributeType: 0
-        eprint!(
-            "parsedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(parsedType)
         );
         // CHECK: parsedType isa PDLOperationType: 1
-        eprint!(
-            "parsedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "parsedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(parsedType)
         );
         // CHECK: parsedType isa PDLRangeType: 0
-        eprint!(
-            "parsedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(parsedType)
         );
         // CHECK: parsedType isa PDLTypeType: 0
-        eprint!(
-            "parsedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(parsedType)
         );
         // CHECK: parsedType isa PDLValueType: 0
-        eprint!(
-            "parsedType isa PDLValueType: {}\n",
+        eprintln!(
+            "parsedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(parsedType)
         );
 
         // CHECK: constructedType isa PDLType: 1
-        eprint!(
-            "constructedType isa PDLType: {}\n",
+        eprintln!(
+            "constructedType isa PDLType: {}",
             mlirTypeIsAPDLType(constructedType)
         );
         // CHECK: constructedType isa PDLAttributeType: 0
-        eprint!(
-            "constructedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(constructedType)
         );
         // CHECK: constructedType isa PDLOperationType: 1
-        eprint!(
-            "constructedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "constructedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(constructedType)
         );
         // CHECK: constructedType isa PDLRangeType: 0
-        eprint!(
-            "constructedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(constructedType)
         );
         // CHECK: constructedType isa PDLTypeType: 0
-        eprint!(
-            "constructedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(constructedType)
         );
         // CHECK: constructedType isa PDLValueType: 0
-        eprint!(
-            "constructedType isa PDLValueType: {}\n",
+        eprintln!(
+            "constructedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(constructedType)
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(parsedType, constructedType));
+        eprintln!("equal: {}", mlirTypeEqual(parsedType, constructedType));
 
         // CHECK: !pdl.operation
         mlirTypeDump(parsedType);
@@ -197,7 +191,7 @@ fn testOperationType(ctx: MlirContext) {
 // CHECK-LABEL: testRangeType
 fn testRangeType(ctx: MlirContext) {
     unsafe {
-        eprint!("testRangeType\n");
+        eprintln!("testRangeType");
 
         let typeType = mlirPDLTypeTypeGet(ctx);
         let parsedType = mlirTypeParseGet(
@@ -218,71 +212,68 @@ fn testRangeType(ctx: MlirContext) {
         );
 
         // CHECK: parsedType isa PDLType: 1
-        eprint!(
-            "parsedType isa PDLType: {}\n",
-            mlirTypeIsAPDLType(parsedType)
-        );
+        eprintln!("parsedType isa PDLType: {}", mlirTypeIsAPDLType(parsedType));
         // CHECK: parsedType isa PDLAttributeType: 0
-        eprint!(
-            "parsedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(parsedType)
         );
         // CHECK: parsedType isa PDLOperationType: 0
-        eprint!(
-            "parsedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "parsedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(parsedType)
         );
         // CHECK: parsedType isa PDLRangeType: 1
-        eprint!(
-            "parsedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(parsedType)
         );
         // CHECK: parsedType isa PDLTypeType: 0
-        eprint!(
-            "parsedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(parsedType)
         );
         // CHECK: parsedType isa PDLValueType: 0
-        eprint!(
-            "parsedType isa PDLValueType: {}\n",
+        eprintln!(
+            "parsedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(parsedType)
         );
 
         // CHECK: constructedType isa PDLType: 1
-        eprint!(
-            "constructedType isa PDLType: {}\n",
+        eprintln!(
+            "constructedType isa PDLType: {}",
             mlirTypeIsAPDLType(constructedType)
         );
         // CHECK: constructedType isa PDLAttributeType: 0
-        eprint!(
-            "constructedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(constructedType)
         );
         // CHECK: constructedType isa PDLOperationType: 0
-        eprint!(
-            "constructedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "constructedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(constructedType)
         );
         // CHECK: constructedType isa PDLRangeType: 1
-        eprint!(
-            "constructedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(constructedType)
         );
         // CHECK: constructedType isa PDLTypeType: 0
-        eprint!(
-            "constructedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(constructedType)
         );
         // CHECK: constructedType isa PDLValueType: 0
-        eprint!(
-            "constructedType isa PDLValueType: {}\n",
+        eprintln!(
+            "constructedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(constructedType)
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(parsedType, constructedType));
+        eprintln!("equal: {}", mlirTypeEqual(parsedType, constructedType));
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(typeType, elementType));
+        eprintln!("equal: {}", mlirTypeEqual(typeType, elementType));
 
         // CHECK: !pdl.range<type>
         mlirTypeDump(parsedType);
@@ -298,7 +289,7 @@ fn testRangeType(ctx: MlirContext) {
 // CHECK-LABEL: testTypeType
 fn testTypeType(ctx: MlirContext) {
     unsafe {
-        eprint!("testTypeType\n");
+        eprintln!("testTypeType");
 
         let parsedType = mlirTypeParseGet(
             ctx,
@@ -316,69 +307,66 @@ fn testTypeType(ctx: MlirContext) {
         );
 
         // CHECK: parsedType isa PDLType: 1
-        eprint!(
-            "parsedType isa PDLType: {}\n",
-            mlirTypeIsAPDLType(parsedType)
-        );
+        eprintln!("parsedType isa PDLType: {}", mlirTypeIsAPDLType(parsedType));
         // CHECK: parsedType isa PDLAttributeType: 0
-        eprint!(
-            "parsedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(parsedType)
         );
         // CHECK: parsedType isa PDLOperationType: 0
-        eprint!(
-            "parsedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "parsedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(parsedType)
         );
         // CHECK: parsedType isa PDLRangeType: 0
-        eprint!(
-            "parsedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(parsedType)
         );
         // CHECK: parsedType isa PDLTypeType: 1
-        eprint!(
-            "parsedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(parsedType)
         );
         // CHECK: parsedType isa PDLValueType: 0
-        eprint!(
-            "parsedType isa PDLValueType: {}\n",
+        eprintln!(
+            "parsedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(parsedType)
         );
 
         // CHECK: constructedType isa PDLType: 1
-        eprint!(
-            "constructedType isa PDLType: {}\n",
+        eprintln!(
+            "constructedType isa PDLType: {}",
             mlirTypeIsAPDLType(constructedType)
         );
         // CHECK: constructedType isa PDLAttributeType: 0
-        eprint!(
-            "constructedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(constructedType)
         );
         // CHECK: constructedType isa PDLOperationType: 0
-        eprint!(
-            "constructedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "constructedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(constructedType)
         );
         // CHECK: constructedType isa PDLRangeType: 0
-        eprint!(
-            "constructedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(constructedType)
         );
         // CHECK: constructedType isa PDLTypeType: 1
-        eprint!(
-            "constructedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(constructedType)
         );
         // CHECK: constructedType isa PDLValueType: 0
-        eprint!(
-            "constructedType isa PDLValueType: {}\n",
+        eprintln!(
+            "constructedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(constructedType)
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(parsedType, constructedType));
+        eprintln!("equal: {}", mlirTypeEqual(parsedType, constructedType));
 
         // CHECK: !pdl.type
         mlirTypeDump(parsedType);
@@ -392,7 +380,7 @@ fn testTypeType(ctx: MlirContext) {
 // CHECK-LABEL: testValueType
 fn testValueType(ctx: MlirContext) {
     unsafe {
-        eprint!("testValueType\n");
+        eprintln!("testValueType");
 
         let parsedType = mlirTypeParseGet(
             ctx,
@@ -410,69 +398,66 @@ fn testValueType(ctx: MlirContext) {
         );
 
         // CHECK: parsedType isa PDLType: 1
-        eprint!(
-            "parsedType isa PDLType: {}\n",
-            mlirTypeIsAPDLType(parsedType)
-        );
+        eprintln!("parsedType isa PDLType: {}", mlirTypeIsAPDLType(parsedType));
         // CHECK: parsedType isa PDLAttributeType: 0
-        eprint!(
-            "parsedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(parsedType)
         );
         // CHECK: parsedType isa PDLOperationType: 0
-        eprint!(
-            "parsedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "parsedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(parsedType)
         );
         // CHECK: parsedType isa PDLRangeType: 0
-        eprint!(
-            "parsedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(parsedType)
         );
         // CHECK: parsedType isa PDLTypeType: 0
-        eprint!(
-            "parsedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "parsedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(parsedType)
         );
         // CHECK: parsedType isa PDLValueType: 1
-        eprint!(
-            "parsedType isa PDLValueType: {}\n",
+        eprintln!(
+            "parsedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(parsedType)
         );
 
         // CHECK: constructedType isa PDLType: 1
-        eprint!(
-            "constructedType isa PDLType: {}\n",
+        eprintln!(
+            "constructedType isa PDLType: {}",
             mlirTypeIsAPDLType(constructedType)
         );
         // CHECK: constructedType isa PDLAttributeType: 0
-        eprint!(
-            "constructedType isa PDLAttributeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLAttributeType: {}",
             mlirTypeIsAPDLAttributeType(constructedType)
         );
         // CHECK: constructedType isa PDLOperationType: 0
-        eprint!(
-            "constructedType isa PDLOperationType: {}\n",
+        eprintln!(
+            "constructedType isa PDLOperationType: {}",
             mlirTypeIsAPDLOperationType(constructedType)
         );
         // CHECK: constructedType isa PDLRangeType: 0
-        eprint!(
-            "constructedType isa PDLRangeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLRangeType: {}",
             mlirTypeIsAPDLRangeType(constructedType)
         );
         // CHECK: constructedType isa PDLTypeType: 0
-        eprint!(
-            "constructedType isa PDLTypeType: {}\n",
+        eprintln!(
+            "constructedType isa PDLTypeType: {}",
             mlirTypeIsAPDLTypeType(constructedType)
         );
         // CHECK: constructedType isa PDLValueType: 1
-        eprint!(
-            "constructedType isa PDLValueType: {}\n",
+        eprintln!(
+            "constructedType isa PDLValueType: {}",
             mlirTypeIsAPDLValueType(constructedType)
         );
 
         // CHECK: equal: 1
-        eprint!("equal: {}\n", mlirTypeEqual(parsedType, constructedType));
+        eprintln!("equal: {}", mlirTypeEqual(parsedType, constructedType));
 
         // CHECK: !pdl.value
         mlirTypeDump(parsedType);

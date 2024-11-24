@@ -22,7 +22,7 @@ set(src_file "${MLIR_SYNTAX_SOURCE_DIR}/cmake/mlir.yaml.in")
 set(conf_file "${MLIR_SYNTAX_BINARY_DIR}/ffi/mlir.yaml")
 set(LINK_LIB "MLIR-C")
 add_custom_command(OUTPUT "${conf_file}"
-  COMMAND "${CMAKE_COMMAND}" -D "SRC=${src_file}" -D "DEST=${conf_file}" -D "SRC_DIR=${SRC_DIR}" -D "LINK_LIB=${LINK_LIB}" -P ${MLIR_SYNTAX_SOURCE_DIR}/cmake/gen_capi_configure.cmake
+  COMMAND "${CMAKE_COMMAND}" -D "SRC=${src_file}" -D "DEST=${conf_file}" -D "SRC_DIR=${SRC_DIR}" -D "LINK_LIB=${LINK_LIB}" -P ${MLIR_SYNTAX_SOURCE_DIR}/cmake/gen_configure.cmake
   DEPENDS "${src_file}")
 
 # FIXME: this is heuristic

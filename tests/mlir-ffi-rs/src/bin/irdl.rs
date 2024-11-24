@@ -1,8 +1,9 @@
+// RUN: bash %S/run_test.sh %s 2>&1 |%FileCheck %s
 #![allow(non_snake_case)]
 
-use mlir::Dialect_::IRDL::*;
-use mlir::Support::*;
-use mlir::IR::*;
+use mlir_capi::Dialect_::IRDL::*;
+use mlir_capi::Support::*;
+use mlir_capi::IR::*;
 
 fn main() {
     let irdlDialect = "
@@ -28,7 +29,7 @@ fn main() {
   module {
     %res = \"foo.op\"() : () -> i32
     \"bar.op\"(%res) : (i32) -> ()
-  }"
+  }\0"
     .as_ptr() as *const i8;
 
     unsafe {
